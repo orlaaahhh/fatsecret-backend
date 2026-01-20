@@ -2,28 +2,69 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import crypto from "crypto";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import pg from "pg";
 
 dotenv.config();
 
 const app = express();
 app.use(cors());
+app.use(express.json());
 
 const PORT = process.env.PORT || 3000;
 
-// ====== CONFIG ======
-const AUTH_MODE = (process.env.FATSECRET_AUTH_MODE || "oauth1").toLowerCase();
-
-// OAuth1
+// ===== ENV =====
+const JWT_SECRET = process.env.JWT_SECRET;
 const FATSECRET_CONSUMER_KEY = process.env.FATSECRET_CONSUMER_KEY;
 const FATSECRET_SHARED_SECRET = process.env.FATSECRET_SHARED_SECRET;
+const DATABASE_URL = process.env.DATABASE_URL;
 
-// OAuth2 (optional, for later)
-const FATSECRET_CLIENT_ID = process.env.FATSECRET_CLIENT_ID;
-const FATSECRET_CLIENT_SECRET = process.env.FATSECRET_CLIENT_SECRET;
+if (!JWT_SECRET) throw new Error("Missing JWT_SECRET");
+if (!FATSECRET_CONSUMER_KEY) throw new Error("Missing FATSECRET_CONSUMER_KEY");
+if (!FATSECRET_SHARED_SECRET) throw new Error("Missing FATSECRET_SHARED_SECRET");
+if (!DATABASE_URL) throw new Error("Missing DATABASE_URL");
 
+// ===== DB =====
+const { Pool } = pg;
+const pool = new Pool({
+  connectionString: DATABASE_URL,
+  ssl: DATABASE_URL.includes("localhost") ? false : { rejectUnauthorized: false },
+});
+
+async function initDb() {
+  await pool.query(`
+    create table if not exists users (
+      id serial primary key,
+      email text unique not null,
+      password_hash text not null,
+      created_at timestamptz default now()
+    );
+  `);
+}
+initDb().catch((e) => console.error("DB init error:", e));
+
+// ===== JWT =====
+function signToken(user) {
+  return jwt.sign({ uid: user.id, email: user.email }, JWT_SECRET, { expiresIn: "30d" });
+}
+
+function authMiddleware(req, res, next) {
+  const h = req.headers.authorization || "";
+  const token = h.startsWith("Bearer ") ? h.slice(7) : null;
+  if (!token) return res.status(401).json({ error: "Missing token" });
+
+  try {
+    req.user = jwt.verify(token, JWT_SECRET);
+    next();
+  } catch {
+    return res.status(401).json({ error: "Invalid token" });
+  }
+}
+
+// ===== FatSecret OAuth1 helpers =====
 const BASE_URL = "https://platform.fatsecret.com/rest/server.api";
 
-// ====== HELPERS ======
 function oauthEncode(str) {
   return encodeURIComponent(str)
     .replace(/[!'()*]/g, (c) => "%" + c.charCodeAt(0).toString(16).toUpperCase());
@@ -37,16 +78,12 @@ function normalizeParams(params) {
   return pairs.map(([k, v]) => `${oauthEncode(k)}=${oauthEncode(v)}`).join("&");
 }
 
-function buildBaseString(httpMethod, url, params) {
-  return [
-    httpMethod.toUpperCase(),
-    oauthEncode(url),
-    oauthEncode(normalizeParams(params)),
-  ].join("&");
+function buildBaseString(method, url, params) {
+  return [method.toUpperCase(), oauthEncode(url), oauthEncode(normalizeParams(params))].join("&");
 }
 
-function signHmacSha1(baseString, consumerSecret, tokenSecret = "") {
-  const key = `${oauthEncode(consumerSecret)}&${oauthEncode(tokenSecret)}`;
+function signHmacSha1(baseString, consumerSecret) {
+  const key = `${oauthEncode(consumerSecret)}&`;
   return crypto.createHmac("sha1", key).update(baseString).digest("base64");
 }
 
@@ -56,12 +93,7 @@ function toQueryString(params) {
     .join("&");
 }
 
-// ====== OAUTH1 REQUEST ======
-function buildOAuth1SignedParams(extraParams) {
-  if (!FATSECRET_CONSUMER_KEY || !FATSECRET_SHARED_SECRET) {
-    throw new Error("Missing FATSECRET_CONSUMER_KEY or FATSECRET_SHARED_SECRET in .env");
-  }
-
+async function fatsecretGet(extraParams) {
   const oauthParams = {
     oauth_consumer_key: FATSECRET_CONSUMER_KEY,
     oauth_signature_method: "HMAC-SHA1",
@@ -74,99 +106,83 @@ function buildOAuth1SignedParams(extraParams) {
   const baseString = buildBaseString("GET", BASE_URL, unsigned);
   const signature = signHmacSha1(baseString, FATSECRET_SHARED_SECRET);
 
-  return { ...unsigned, oauth_signature: signature };
-}
+  const params = { ...unsigned, oauth_signature: signature };
+  const url = `${BASE_URL}?${toQueryString(params)}`;
 
-async function fatsecretGetOAuth1(params) {
-  const signed = buildOAuth1SignedParams(params);
-  const url = `${BASE_URL}?${toQueryString(signed)}`;
-  const res = await fetch(url);
-  const text = await res.text();
+  const r = await fetch(url);
+  const text = await r.text();
 
   let json;
   try {
     json = JSON.parse(text);
   } catch {
-    throw new Error(`FatSecret returned non-JSON: ${text.slice(0, 300)}`);
+    throw new Error(`FatSecret returned non-JSON: ${text.slice(0, 200)}`);
   }
 
-  // FatSecret può restituire { error: {...} } anche con HTTP 200
   if (json?.error) {
     throw new Error(`FatSecret error ${json.error.code}: ${json.error.message}`);
   }
+
   return json;
 }
 
-// ====== OAUTH2 REQUEST (OPTIONAL) ======
-let cachedToken = null;
-let cachedTokenExpiresAt = 0;
+// ===== ROUTES =====
+app.get("/", (req, res) => res.json({ ok: true }));
 
-async function getAccessTokenOAuth2() {
-  if (!FATSECRET_CLIENT_ID || !FATSECRET_CLIENT_SECRET) {
-    throw new Error("Missing FATSECRET_CLIENT_ID or FATSECRET_CLIENT_SECRET in .env");
+// AUTH: REGISTER
+app.post("/auth/register", async (req, res) => {
+  const email = String(req.body?.email ?? "").trim().toLowerCase();
+  const password = String(req.body?.password ?? "");
+
+  if (!email || password.length < 6) {
+    return res.status(400).json({ error: "Invalid email or password (min 6 chars)" });
   }
 
-  const now = Date.now();
-  if (cachedToken && now < cachedTokenExpiresAt - 30_000) return cachedToken;
+  const password_hash = await bcrypt.hash(password, 10);
 
-  const basic = Buffer.from(`${FATSECRET_CLIENT_ID}:${FATSECRET_CLIENT_SECRET}`).toString("base64");
-
-  const res = await fetch("https://oauth.fatsecret.com/connect/token", {
-    method: "POST",
-    headers: {
-      Authorization: `Basic ${basic}`,
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    body: new URLSearchParams({
-      grant_type: "client_credentials",
-      scope: "basic",
-    }),
-  });
-
-  const text = await res.text();
-  if (!res.ok) throw new Error(`Token error ${res.status}: ${text}`);
-
-  const json = JSON.parse(text);
-  cachedToken = json.access_token;
-  cachedTokenExpiresAt = now + json.expires_in * 1000;
-  return cachedToken;
-}
-
-async function fatsecretGetOAuth2(params) {
-  const token = await getAccessTokenOAuth2();
-  const url = `${BASE_URL}?${new URLSearchParams({ ...params, format: "json" }).toString()}`;
-  const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
-  const text = await res.text();
-
-  let json;
   try {
-    json = JSON.parse(text);
-  } catch {
-    throw new Error(`FatSecret returned non-JSON: ${text.slice(0, 300)}`);
+    const r = await pool.query(
+      "insert into users(email,password_hash) values($1,$2) returning id,email",
+      [email, password_hash]
+    );
+    return res.json({ token: signToken(r.rows[0]) });
+  } catch (e) {
+    if (String(e?.message).toLowerCase().includes("duplicate")) {
+      return res.status(409).json({ error: "Email already exists" });
+    }
+    return res.status(500).json({ error: "Server error" });
   }
+});
 
-  if (json?.error) {
-    throw new Error(`FatSecret error ${json.error.code}: ${json.error.message}`);
-  }
-  return json;
-}
+// AUTH: LOGIN
+app.post("/auth/login", async (req, res) => {
+  const email = String(req.body?.email ?? "").trim().toLowerCase();
+  const password = String(req.body?.password ?? "");
 
-// ====== SINGLE ENTRYPOINT ======
-async function fatsecretGet(params) {
-  if (AUTH_MODE === "oauth2") return fatsecretGetOAuth2(params);
-  return fatsecretGetOAuth1({ ...params, format: "json" }); // format json anche per oauth1
-}
+  if (!email || !password) return res.status(400).json({ error: "Invalid credentials" });
 
-// ====== ROUTES ======
-app.get("/", (req, res) => res.json({ ok: true, mode: AUTH_MODE }));
+  const r = await pool.query("select id,email,password_hash from users where email=$1", [email]);
+  const user = r.rows[0];
+  if (!user) return res.status(401).json({ error: "Wrong credentials" });
 
-app.get("/fatsecret/search", async (req, res) => {
+  const ok = await bcrypt.compare(password, user.password_hash);
+  if (!ok) return res.status(401).json({ error: "Wrong credentials" });
+
+  return res.json({ token: signToken(user) });
+});
+
+// (optional) ME
+app.get("/me", authMiddleware, (req, res) => res.json({ user: req.user }));
+
+// FatSecret: SEARCH (PROTETTA)
+app.get("/fatsecret/search", authMiddleware, async (req, res) => {
   try {
     const query = String(req.query.query ?? "").trim();
     if (!query) return res.status(400).json({ error: "Missing query" });
 
     const json = await fatsecretGet({
       method: "foods.search",
+      format: "json",
       search_expression: query,
       max_results: "20",
       page_number: "0",
@@ -175,7 +191,7 @@ app.get("/fatsecret/search", async (req, res) => {
     const foodsNode = json?.foods?.food;
     const list = Array.isArray(foodsNode) ? foodsNode : foodsNode ? [foodsNode] : [];
 
-    res.json({
+    return res.json({
       foods: list.map((f) => ({
         food_id: f.food_id,
         food_name: f.food_name,
@@ -185,27 +201,25 @@ app.get("/fatsecret/search", async (req, res) => {
       total_results: json?.foods?.total_results ?? null,
     });
   } catch (e) {
-    res.status(502).json({ error: e.message ?? "Server error" });
+    return res.status(502).json({ error: e.message ?? "Upstream error" });
   }
 });
 
-app.get("/fatsecret/food/:id", async (req, res) => {
+// FatSecret: FOOD GET (PROTETTA) - utile per calorie reali più avanti
+app.get("/fatsecret/food/:id", authMiddleware, async (req, res) => {
   try {
     const id = String(req.params.id).trim();
-    if (!id) return res.status(400).json({ error: "Missing id" });
-
     const json = await fatsecretGet({
       method: "food.get",
+      format: "json",
       food_id: id,
     });
-
-    // qui lasciamo raw per ora: poi estraiamo calories/servings in modo pulito
-    res.json(json);
+    return res.json(json);
   } catch (e) {
-    res.status(502).json({ error: e.message ?? "Server error" });
+    return res.status(502).json({ error: e.message ?? "Upstream error" });
   }
 });
 
 app.listen(PORT, "0.0.0.0", () => {
-  console.log(`Backend listening on http://0.0.0.0:${PORT} (mode=${AUTH_MODE})`);
+  console.log(`Listening on ${PORT}`);
 });
