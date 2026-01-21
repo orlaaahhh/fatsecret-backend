@@ -12,6 +12,9 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// ✅ Dashboard statica (file in /public) accessibile su /admin
+app.use("/admin", express.static("public"));
+
 const PORT = process.env.PORT || 3000;
 
 // ===== ENV =====
@@ -20,10 +23,14 @@ const FATSECRET_CONSUMER_KEY = process.env.FATSECRET_CONSUMER_KEY;
 const FATSECRET_SHARED_SECRET = process.env.FATSECRET_SHARED_SECRET;
 const DATABASE_URL = process.env.DATABASE_URL;
 
+// ✅ nuova env per admin dashboard
+const ADMIN_API_KEY = process.env.ADMIN_API_KEY;
+
 if (!JWT_SECRET) throw new Error("Missing JWT_SECRET");
 if (!FATSECRET_CONSUMER_KEY) throw new Error("Missing FATSECRET_CONSUMER_KEY");
 if (!FATSECRET_SHARED_SECRET) throw new Error("Missing FATSECRET_SHARED_SECRET");
 if (!DATABASE_URL) throw new Error("Missing DATABASE_URL");
+if (!ADMIN_API_KEY) throw new Error("Missing ADMIN_API_KEY");
 
 // ===== DB =====
 const { Pool } = pg;
@@ -40,6 +47,26 @@ async function initDb() {
       password_hash text not null,
       created_at timestamptz default now()
     );
+  `);
+
+  // ✅ nuova tabella meetings per calendario
+  await pool.query(`
+    create table if not exists meetings (
+      id serial primary key,
+      user_id integer not null references users(id) on delete cascade,
+      title text not null,
+      start_time timestamptz not null,
+      end_time timestamptz not null,
+      zoom_url text not null,
+      created_at timestamptz default now(),
+      updated_at timestamptz default now(),
+      constraint meetings_time_check check (end_time > start_time)
+    );
+  `);
+
+  await pool.query(`
+    create index if not exists meetings_user_start_idx
+    on meetings(user_id, start_time);
   `);
 }
 initDb().catch((e) => console.error("DB init error:", e));
@@ -60,6 +87,15 @@ function authMiddleware(req, res, next) {
   } catch {
     return res.status(401).json({ error: "Invalid token" });
   }
+}
+
+// ✅ Admin middleware (dashboard)
+function adminKeyMiddleware(req, res, next) {
+  const key = req.headers["x-admin-key"];
+  if (!key || key !== ADMIN_API_KEY) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+  next();
 }
 
 // ===== FatSecret OAuth1 helpers =====
@@ -109,7 +145,6 @@ async function fatsecretGetAt(baseUrl, extraParams, { debugLabel } = {}) {
   const params = { ...unsigned, oauth_signature: signature };
   const url = `${baseUrl}?${toQueryString(params)}`;
 
-  // 🔎 DEBUG: ti dice quale endpoint stai chiamando davvero
   console.log(`[FatSecret ${debugLabel ?? "GET"}]`, url);
 
   const r = await fetch(url);
@@ -123,7 +158,6 @@ async function fatsecretGetAt(baseUrl, extraParams, { debugLabel } = {}) {
   }
 
   if (json?.error) {
-    // error = { code, message }
     throw new Error(`FatSecret error ${json.error.code}: ${json.error.message}`);
   }
 
@@ -146,8 +180,8 @@ function digitsOnly(s) {
 function toGTIN13(raw) {
   const d = digitsOnly(raw);
   if (d.length === 13) return d;
-  if (d.length === 12) return d.padStart(13, "0"); // UPC-A -> GTIN-13
-  if (d.length === 8) return d.padStart(13, "0");  // EAN-8 -> GTIN-13
+  if (d.length === 12) return d.padStart(13, "0");
+  if (d.length === 8) return d.padStart(13, "0");
   return null;
 }
 
@@ -215,6 +249,66 @@ app.post("/auth/login", async (req, res) => {
 // ME
 app.get("/me", authMiddleware, (req, res) => res.json({ user: req.user }));
 
+// ===========================
+// ✅ CALENDARIO - API MEETINGS
+// ===========================
+
+// MOBILE: GET meetings in range (from/to ISO) - usa JWT
+app.get("/meetings", authMiddleware, async (req, res) => {
+  const from = String(req.query.from ?? "");
+  const to = String(req.query.to ?? "");
+  if (!from || !to) return res.status(400).json({ error: "Missing from/to" });
+
+  const fromDate = new Date(from);
+  const toDate = new Date(to);
+  if (isNaN(fromDate) || isNaN(toDate)) return res.status(400).json({ error: "Invalid dates" });
+
+  const r = await pool.query(
+    `select id, title, start_time, end_time, zoom_url
+     from meetings
+     where user_id = $1 and start_time >= $2 and start_time < $3
+     order by start_time asc`,
+    [req.user.uid, fromDate.toISOString(), toDate.toISOString()]
+  );
+
+  return res.json({ meetings: r.rows });
+});
+
+// DASHBOARD: crea meeting (admin)
+app.post("/meetings", adminKeyMiddleware, async (req, res) => {
+  const title = String(req.body?.title ?? "").trim();
+  const zoomUrl = String(req.body?.zoomUrl ?? "").trim();
+  const userId = Number(req.body?.userId);
+  const start = new Date(String(req.body?.start ?? ""));
+  const end = new Date(String(req.body?.end ?? ""));
+
+  if (!title || !zoomUrl || !userId || isNaN(start) || isNaN(end) || end <= start) {
+    return res.status(400).json({ error: "Invalid payload" });
+  }
+
+  const r = await pool.query(
+    `insert into meetings (user_id, title, start_time, end_time, zoom_url)
+     values ($1,$2,$3,$4,$5)
+     returning id, title, start_time, end_time, zoom_url`,
+    [userId, title, start.toISOString(), end.toISOString(), zoomUrl]
+  );
+
+  return res.status(201).json({ meeting: r.rows[0] });
+});
+
+// DASHBOARD: trova userId da email (admin)
+app.get("/admin/users", adminKeyMiddleware, async (req, res) => {
+  const email = String(req.query.email ?? "").trim().toLowerCase();
+  if (!email) return res.status(400).json({ error: "Missing email" });
+
+  const r = await pool.query(`select id, email from users where email=$1`, [email]);
+  return res.json({ user: r.rows[0] ?? null });
+});
+
+// ======================
+// FatSecret endpoints
+// ======================
+
 // FatSecret: SEARCH
 app.get("/fatsecret/search", authMiddleware, async (req, res) => {
   try {
@@ -255,7 +349,6 @@ app.get("/fatsecret/barcode", authMiddleware, async (req, res) => {
       return res.status(400).json({ error: "Invalid barcode. Use EAN-13/UPC-A/EAN-8 digits." });
     }
 
-    // region defaults to US if omitted in FatSecret :contentReference[oaicite:3]{index=3}
     const region = String(req.query.region ?? "IT");
     const language = String(req.query.language ?? "en");
 
@@ -292,7 +385,6 @@ app.get("/fatsecret/barcode", authMiddleware, async (req, res) => {
   } catch (e) {
     const msg = String(e?.message ?? "");
 
-    // 🔥 Se è davvero error 10, quasi sicuramente: Barcode API non abilitata (Premier Exclusive) :contentReference[oaicite:4]{index=4}
     if (msg.includes("FatSecret error 10:")) {
       return res.status(403).json({
         error:
