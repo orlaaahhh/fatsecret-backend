@@ -63,11 +63,11 @@ function authMiddleware(req, res, next) {
 }
 
 // ===== FatSecret OAuth1 helpers =====
+// You are using the "method=..." style on server.api
 const BASE_URL = "https://platform.fatsecret.com/rest/server.api";
 
 function oauthEncode(str) {
-  return encodeURIComponent(str)
-    .replace(/[!'()*]/g, (c) => "%" + c.charCodeAt(0).toString(16).toUpperCase());
+  return encodeURIComponent(str).replace(/[!'()*]/g, (c) => "%" + c.charCodeAt(0).toString(16).toUpperCase());
 }
 
 function normalizeParams(params) {
@@ -126,6 +126,41 @@ async function fatsecretGet(extraParams) {
   return json;
 }
 
+// ===== Barcode helpers =====
+// FatSecret expects GTIN-13 (13 digits with left zero padding). :contentReference[oaicite:2]{index=2}
+function digitsOnly(s) {
+  return String(s ?? "").replace(/\D/g, "");
+}
+
+function toGTIN13(raw) {
+  const d = digitsOnly(raw);
+
+  if (d.length === 13) return d;          // EAN-13
+  if (d.length === 12) return d.padStart(13, "0"); // UPC-A -> GTIN-13
+  if (d.length === 8) return d.padStart(13, "0");  // EAN-8 -> GTIN-13
+
+  // UPC-E would require expansion to UPC-A first (not implemented here)
+  return null;
+}
+
+function pickDefaultServing(servingsNode) {
+  const servings = servingsNode?.serving;
+  const arr = Array.isArray(servings) ? servings : servings ? [servings] : [];
+  return arr.find((s) => String(s.is_default) === "1") ?? arr[0] ?? null;
+}
+
+function makeDescriptionFromServing(serving) {
+  if (!serving) return null;
+  // fields names are from food.get-like response
+  const sd = serving.serving_description ?? "serving";
+  const calories = serving.calories ?? "0";
+  const fat = serving.fat ?? "0";
+  const carbs = serving.carbohydrate ?? serving.carbs ?? "0";
+  const protein = serving.protein ?? "0";
+
+  return `Per ${sd} - Calories: ${calories}kcal | Fat: ${fat}g | Carbs: ${carbs}g | Protein: ${protein}g`;
+}
+
 // ===== ROUTES =====
 app.get("/", (req, res) => res.json({ ok: true }));
 
@@ -141,10 +176,10 @@ app.post("/auth/register", async (req, res) => {
   const password_hash = await bcrypt.hash(password, 10);
 
   try {
-    const r = await pool.query(
-      "insert into users(email,password_hash) values($1,$2) returning id,email",
-      [email, password_hash]
-    );
+    const r = await pool.query("insert into users(email,password_hash) values($1,$2) returning id,email", [
+      email,
+      password_hash,
+    ]);
     return res.json({ token: signToken(r.rows[0]) });
   } catch (e) {
     if (String(e?.message).toLowerCase().includes("duplicate")) {
@@ -205,7 +240,87 @@ app.get("/fatsecret/search", authMiddleware, async (req, res) => {
   }
 });
 
-// FatSecret: FOOD GET (PROTETTA) - utile per calorie reali più avanti
+// ✅ FatSecret: BARCODE (PROTETTA)
+// Uses food.find_id_for_barcode.v2 (recommended) or falls back to v1 + food.get :contentReference[oaicite:3]{index=3}
+app.get("/fatsecret/barcode", authMiddleware, async (req, res) => {
+  try {
+    const barcodeRaw = String(req.query.barcode ?? "").trim();
+    const gtin13 = toGTIN13(barcodeRaw);
+    if (!gtin13) return res.status(400).json({ error: "Invalid barcode. Use EAN-13/UPC-A/EAN-8 digits." });
+
+    // Choose region/language (important for EU products). Default region is US if omitted. :contentReference[oaicite:4]{index=4}
+    const region = String(req.query.region ?? "IT");
+    const language = String(req.query.language ?? "en");
+
+    // 1) Try v2: returns a full food response (same shape as food.get.v5) :contentReference[oaicite:5]{index=5}
+    try {
+      const jsonV2 = await fatsecretGet({
+        method: "food.find_id_for_barcode.v2",
+        format: "json",
+        barcode: gtin13,
+        region,
+        language,
+        flag_default_serving: "true",
+      });
+
+      const food = jsonV2?.food;
+      if (!food?.food_id) return res.json({ foods: [] });
+
+      const serving = pickDefaultServing(food?.servings);
+      const desc = makeDescriptionFromServing(serving);
+
+      return res.json({
+        foods: [
+          {
+            food_id: food.food_id,
+            food_name: food.food_name,
+            brand_name: food.brand_name ?? null,
+            food_description: desc,
+          },
+        ],
+      });
+    } catch (eV2) {
+      // 2) Fallback v1: returns only food_id, then call food.get to get details :contentReference[oaicite:6]{index=6}
+      const idJson = await fatsecretGet({
+        method: "food.find_id_for_barcode",
+        format: "json",
+        barcode: gtin13,
+        region,
+        language,
+      });
+
+      const foodId = idJson?.food_id?.value ?? idJson?.food_id ?? null;
+      if (!foodId || String(foodId) === "0") return res.json({ foods: [] });
+
+      const foodJson = await fatsecretGet({
+        method: "food.get",
+        format: "json",
+        food_id: String(foodId),
+      });
+
+      const food = foodJson?.food;
+      if (!food?.food_id) return res.json({ foods: [] });
+
+      const serving = pickDefaultServing(food?.servings);
+      const desc = makeDescriptionFromServing(serving);
+
+      return res.json({
+        foods: [
+          {
+            food_id: food.food_id,
+            food_name: food.food_name,
+            brand_name: food.brand_name ?? null,
+            food_description: desc,
+          },
+        ],
+      });
+    }
+  } catch (e) {
+    return res.status(502).json({ error: e.message ?? "Upstream error" });
+  }
+});
+
+// FatSecret: FOOD GET (PROTETTA)
 app.get("/fatsecret/food/:id", authMiddleware, async (req, res) => {
   try {
     const id = String(req.params.id).trim();
