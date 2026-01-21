@@ -255,23 +255,30 @@ app.get("/me", authMiddleware, (req, res) => res.json({ user: req.user }));
 
 // MOBILE: GET meetings in range (from/to ISO) - usa JWT
 app.get("/meetings", authMiddleware, async (req, res) => {
-  const from = String(req.query.from ?? "");
-  const to = String(req.query.to ?? "");
-  if (!from || !to) return res.status(400).json({ error: "Missing from/to" });
+  try {
+    const from = String(req.query.from ?? "");
+    const to = String(req.query.to ?? "");
+    if (!from || !to) return res.status(400).json({ error: "Missing from/to" });
 
-  const fromDate = new Date(from);
-  const toDate = new Date(to);
-  if (isNaN(fromDate) || isNaN(toDate)) return res.status(400).json({ error: "Invalid dates" });
+    const fromDate = new Date(from);
+    const toDate = new Date(to);
+    if (isNaN(fromDate.getTime()) || isNaN(toDate.getTime())) {
+      return res.status(400).json({ error: "Invalid dates" });
+    }
 
-  const r = await pool.query(
-    `select id, title, start_time, end_time, zoom_url
-     from meetings
-     where user_id = $1 and start_time >= $2 and start_time < $3
-     order by start_time asc`,
-    [req.user.uid, fromDate.toISOString(), toDate.toISOString()]
-  );
+    const r = await pool.query(
+      `select id, title, start_time, end_time, zoom_url
+       from meetings
+       where user_id = $1 and start_time >= $2 and start_time < $3
+       order by start_time asc`,
+      [req.user.uid, fromDate.toISOString(), toDate.toISOString()]
+    );
 
-  return res.json({ meetings: r.rows });
+    return res.json({ meetings: r.rows });
+  } catch (e) {
+    console.error("GET /meetings error:", e);
+    return res.status(500).json({ error: "Server error (meetings)" });
+  }
 });
 
 // DASHBOARD: crea meeting (admin)
@@ -416,4 +423,5 @@ app.get("/fatsecret/food/:id", authMiddleware, async (req, res) => {
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Listening on ${PORT}`);
 });
+
 
