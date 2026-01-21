@@ -91,10 +91,9 @@ function toQueryString(params) {
 }
 
 /**
- * Generic FatSecret GET (OAuth1) against ANY FatSecret endpoint URL.
- * This is the key change to support URL-based Barcode V2 (no method=...).
+ * Generic OAuth1 GET against ANY FatSecret endpoint URL
  */
-async function fatsecretGetAt(baseUrl, extraParams) {
+async function fatsecretGetAt(baseUrl, extraParams, { debugLabel } = {}) {
   const oauthParams = {
     oauth_consumer_key: FATSECRET_CONSUMER_KEY,
     oauth_signature_method: "HMAC-SHA1",
@@ -110,6 +109,9 @@ async function fatsecretGetAt(baseUrl, extraParams) {
   const params = { ...unsigned, oauth_signature: signature };
   const url = `${baseUrl}?${toQueryString(params)}`;
 
+  // 🔎 DEBUG: ti dice quale endpoint stai chiamando davvero
+  console.log(`[FatSecret ${debugLabel ?? "GET"}]`, url);
+
   const r = await fetch(url);
   const text = await r.text();
 
@@ -121,6 +123,7 @@ async function fatsecretGetAt(baseUrl, extraParams) {
   }
 
   if (json?.error) {
+    // error = { code, message }
     throw new Error(`FatSecret error ${json.error.code}: ${json.error.message}`);
   }
 
@@ -128,11 +131,11 @@ async function fatsecretGetAt(baseUrl, extraParams) {
 }
 
 /**
- * Compatibility helper for your current calls using server.api (method=...).
+ * Back-compat for server.api (method=...)
  */
 const SERVER_API_URL = "https://platform.fatsecret.com/rest/server.api";
 async function fatsecretGet(extraParams) {
-  return fatsecretGetAt(SERVER_API_URL, extraParams);
+  return fatsecretGetAt(SERVER_API_URL, extraParams, { debugLabel: "server.api" });
 }
 
 // ===== Barcode helpers =====
@@ -140,18 +143,11 @@ function digitsOnly(s) {
   return String(s ?? "").replace(/\D/g, "");
 }
 
-/**
- * FatSecret barcode endpoint expects GTIN-13.
- * - EAN-13: 13 digits
- * - UPC-A: 12 digits -> pad to 13 with leading 0
- * - EAN-8: 8 digits -> pad to 13 with leading zeros
- * UPC-E would need expansion -> not implemented here.
- */
 function toGTIN13(raw) {
   const d = digitsOnly(raw);
   if (d.length === 13) return d;
-  if (d.length === 12) return d.padStart(13, "0");
-  if (d.length === 8) return d.padStart(13, "0");
+  if (d.length === 12) return d.padStart(13, "0"); // UPC-A -> GTIN-13
+  if (d.length === 8) return d.padStart(13, "0");  // EAN-8 -> GTIN-13
   return null;
 }
 
@@ -166,7 +162,7 @@ function makeDescriptionFromServing(serving) {
   const sd = serving.serving_description ?? "serving";
   const calories = serving.calories ?? "0";
   const fat = serving.fat ?? "0";
-  const carbs = serving.carbohydrate ?? serving.carbs ?? "0";
+  const carbs = serving.carbohydrate ?? "0";
   const protein = serving.protein ?? "0";
   return `Per ${sd} - Calories: ${calories}kcal | Fat: ${fat}g | Carbs: ${carbs}g | Protein: ${protein}g`;
 }
@@ -216,10 +212,10 @@ app.post("/auth/login", async (req, res) => {
   return res.json({ token: signToken(user) });
 });
 
-// (optional) ME
+// ME
 app.get("/me", authMiddleware, (req, res) => res.json({ user: req.user }));
 
-// FatSecret: SEARCH (PROTETTA)
+// FatSecret: SEARCH
 app.get("/fatsecret/search", authMiddleware, async (req, res) => {
   try {
     const query = String(req.query.query ?? "").trim();
@@ -250,8 +246,7 @@ app.get("/fatsecret/search", authMiddleware, async (req, res) => {
   }
 });
 
-// ✅ FatSecret: BARCODE V2 (PROTETTA) — URL-based endpoint
-// This is what you need so scanning goes directly to the product.
+// ✅ FatSecret: BARCODE (URL-based v2)
 app.get("/fatsecret/barcode", authMiddleware, async (req, res) => {
   try {
     const barcodeRaw = String(req.query.barcode ?? "").trim();
@@ -260,21 +255,24 @@ app.get("/fatsecret/barcode", authMiddleware, async (req, res) => {
       return res.status(400).json({ error: "Invalid barcode. Use EAN-13/UPC-A/EAN-8 digits." });
     }
 
-    // If you scan EU products, region matters. Defaulting to IT.
+    // region defaults to US if omitted in FatSecret :contentReference[oaicite:3]{index=3}
     const region = String(req.query.region ?? "IT");
     const language = String(req.query.language ?? "en");
 
     const BARCODE_V2_URL = "https://platform.fatsecret.com/rest/food/barcode/find-by-id/v2";
 
-    const json = await fatsecretGetAt(BARCODE_V2_URL, {
-      format: "json",
-      barcode: gtin13,
-      region,
-      language,
-      flag_default_serving: "true",
-    });
+    const json = await fatsecretGetAt(
+      BARCODE_V2_URL,
+      {
+        format: "json",
+        barcode: gtin13,
+        region,
+        language,
+        flag_default_serving: "true",
+      },
+      { debugLabel: "barcode.v2" }
+    );
 
-    // v2 returns { food: {...} }
     const food = json?.food;
     if (!food?.food_id) return res.json({ foods: [] });
 
@@ -292,11 +290,23 @@ app.get("/fatsecret/barcode", authMiddleware, async (req, res) => {
       ],
     });
   } catch (e) {
-    return res.status(502).json({ error: e?.message ?? "Upstream error" });
+    const msg = String(e?.message ?? "");
+
+    // 🔥 Se è davvero error 10, quasi sicuramente: Barcode API non abilitata (Premier Exclusive) :contentReference[oaicite:4]{index=4}
+    if (msg.includes("FatSecret error 10:")) {
+      return res.status(403).json({
+        error:
+          "FatSecret Barcode API not available for this app key (Premier Exclusive) or endpoint not enabled. " +
+          "Your FatSecret response was: " +
+          msg,
+      });
+    }
+
+    return res.status(502).json({ error: msg || "Upstream error" });
   }
 });
 
-// FatSecret: FOOD GET (PROTETTA)
+// FatSecret: FOOD GET
 app.get("/fatsecret/food/:id", authMiddleware, async (req, res) => {
   try {
     const id = String(req.params.id).trim();
