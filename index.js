@@ -7,7 +7,7 @@ import jwt from "jsonwebtoken";
 import pg from "pg";
 
 dotenv.config();
-
+console.log("BOOT: starting server...");
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -416,3 +416,4 @@ app.get("/fatsecret/food/:id", authMiddleware, async (req, res) => {
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Listening on ${PORT}`);
 });
+
