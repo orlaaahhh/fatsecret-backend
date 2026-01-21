@@ -1,0 +1,59 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Admin - Meetings</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      body { font-family: system-ui; max-width: 720px; margin: 24px auto; padding: 0 12px; }
+      input { width: 100%; padding: 10px; margin: 6px 0 12px; }
+      button { padding: 10px 14px; cursor: pointer; }
+      pre { background: #111; color: #0f0; padding: 12px; overflow: auto; border-radius: 8px; }
+      .row { display: flex; gap: 12px; }
+      .row > div { flex: 1; }
+      small { color: #555; }
+    </style>
+  </head>
+  <body>
+    <h2>Admin Meetings</h2>
+    <p><small>Questa pagina chiama il tuo backend. Non salvare l’admin key nel codice: incollala qui.</small></p>
+
+    <label>ADMIN API KEY (header x-admin-key)</label>
+    <input id="adminKey" placeholder="incolla qui la ADMIN_API_KEY" />
+
+    <h3>1) Trova userId da email</h3>
+    <label>Email utente</label>
+    <input id="email" placeholder="es: test@test.com" />
+    <button id="btnFind">Trova userId</button>
+    <p>UserId: <b id="userIdLabel">-</b></p>
+
+    <h3>2) Crea meeting</h3>
+
+    <div class="row">
+      <div>
+        <label>userId</label>
+        <input id="userId" placeholder="es: 1" />
+      </div>
+      <div>
+        <label>Titolo</label>
+        <input id="title" placeholder="es: Call Zoom" />
+      </div>
+    </div>
+
+    <label>Start (ISO, es: 2026-01-22T10:00:00.000Z)</label>
+    <input id="start" placeholder="2026-01-22T10:00:00.000Z" />
+
+    <label>End (ISO, es: 2026-01-22T10:30:00.000Z)</label>
+    <input id="end" placeholder="2026-01-22T10:30:00.000Z" />
+
+    <label>Zoom URL</label>
+    <input id="zoomUrl" placeholder="https://zoom.us/j/..." />
+
+    <button id="btnCreate">Crea meeting</button>
+
+    <h3>Output</h3>
+    <pre id="out">-</pre>
+
+    <script src="./admin.js"></script>
+  </body>
+</html>
