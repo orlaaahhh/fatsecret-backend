@@ -6,92 +6,82 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <style>
       :root{
-        --bg:#0b1220;
-        --card:rgba(255,255,255,0.06);
-        --card2:rgba(255,255,255,0.08);
-        --text:#e7eefc;
-        --muted:rgba(231,238,252,0.68);
-        --line:rgba(231,238,252,0.14);
+        --bg:#0b0f19;
+        --card:#0f1626;
+        --line:rgba(255,255,255,0.08);
+        --text:#eaf0ff;
+        --muted:rgba(234,240,255,0.62);
         --accent:#5b8cff;
         --danger:#ff4d6d;
-        --ok:#26d07c;
-        --shadow: 0 18px 60px rgba(0,0,0,0.35);
-        --radius:18px;
+        --shadow: 0 18px 60px rgba(0,0,0,0.45);
+        --r:16px;
       }
       *{ box-sizing:border-box; }
       body{
         margin:0;
         font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
         background:
-          radial-gradient(900px 380px at 20% -10%, rgba(91,140,255,0.22), transparent 60%),
-          radial-gradient(900px 380px at 90% 0%, rgba(38,208,124,0.12), transparent 55%),
-          radial-gradient(900px 380px at 60% 110%, rgba(255,77,109,0.10), transparent 55%),
+          radial-gradient(900px 420px at 20% -10%, rgba(91,140,255,0.18), transparent 60%),
+          radial-gradient(900px 420px at 90% 0%, rgba(35,193,122,0.10), transparent 55%),
           var(--bg);
         color:var(--text);
       }
       .wrap{
-        max-width: 980px;
+        max-width: 900px;
         margin: 28px auto;
-        padding: 0 14px 24px;
+        padding: 0 14px 28px;
       }
       .top{
         display:flex;
         align-items:flex-start;
         justify-content:space-between;
-        gap:14px;
+        gap:12px;
         margin-bottom:14px;
       }
       .title{
-        font-size:18px;
+        font-size:16px;
         font-weight:900;
         letter-spacing:0.2px;
       }
       .sub{
         margin-top:6px;
         color:var(--muted);
-        font-size:13px;
-        font-weight:650;
-        line-height:1.35;
-      }
-      .pill{
-        display:inline-flex;
-        align-items:center;
-        gap:8px;
-        padding:10px 12px;
-        border-radius:999px;
-        background:rgba(91,140,255,0.12);
-        border:1px solid rgba(91,140,255,0.22);
-        color: var(--text);
         font-size:12px;
-        font-weight:850;
-        user-select:none;
+        font-weight:650;
       }
       .grid{
         display:grid;
-        grid-template-columns: 1.1fr 0.9fr;
-        gap:14px;
+        grid-template-columns: 1fr 1fr;
+        gap:12px;
       }
-      @media (max-width: 920px){
+      @media (max-width: 900px){
         .grid{ grid-template-columns: 1fr; }
       }
       .card{
-        background: var(--card);
+        background: rgba(15,22,38,0.72);
         border:1px solid var(--line);
-        border-radius: var(--radius);
+        border-radius: var(--r);
         padding:14px;
         box-shadow: var(--shadow);
+        backdrop-filter: blur(8px);
       }
-      .card h3{
-        margin:0 0 10px;
-        font-size:14px;
+      .cardHeader{
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        gap:10px;
+        margin-bottom:10px;
+      }
+      h3{
+        margin:0;
+        font-size:13px;
         font-weight:900;
+        letter-spacing:0.2px;
       }
-      .hint{
-        margin: 0 0 12px;
-        color: var(--muted);
-        font-size:12px;
-        font-weight:650;
-        line-height:1.35;
+      .divider{
+        height:1px;
+        background: rgba(255,255,255,0.08);
+        margin: 12px 0;
       }
       label{
         display:block;
@@ -100,32 +90,26 @@
         font-size:12px;
         font-weight:850;
       }
-      input, select, textarea{
+      input{
         width:100%;
         padding:12px 12px;
         border-radius: 14px;
-        border:1px solid rgba(231,238,252,0.14);
+        border:1px solid rgba(255,255,255,0.10);
         background: rgba(255,255,255,0.06);
         color: var(--text);
         outline:none;
         font-weight:750;
       }
-      input::placeholder, textarea::placeholder{ color: rgba(231,238,252,0.45); font-weight:700; }
-      input:focus, select:focus, textarea:focus{
-        border-color: rgba(91,140,255,0.48);
-        box-shadow: 0 0 0 4px rgba(91,140,255,0.12);
+      input::placeholder{ color: rgba(234,240,255,0.35); font-weight:700; }
+      input:focus{
+        border-color: rgba(91,140,255,0.45);
+        box-shadow: 0 0 0 4px rgba(91,140,255,0.14);
       }
       .row{
         display:flex;
         gap:10px;
       }
       .row > *{ flex:1; }
-      .btnRow{
-        display:flex;
-        gap:10px;
-        margin-top:12px;
-        flex-wrap:wrap;
-      }
       button{
         border:0;
         cursor:pointer;
@@ -133,49 +117,30 @@
         padding: 12px 14px;
         font-weight:900;
         letter-spacing:0.2px;
+        user-select:none;
       }
       .btn{
-        background: rgba(255,255,255,0.08);
-        border:1px solid rgba(231,238,252,0.14);
+        background: rgba(255,255,255,0.06);
+        border:1px solid rgba(255,255,255,0.12);
         color: var(--text);
       }
-      .btn:hover{ background: rgba(255,255,255,0.10); }
+      .btn:hover{ background: rgba(255,255,255,0.09); }
       .btnPrimary{
         background: rgba(91,140,255,0.18);
-        border:1px solid rgba(91,140,255,0.34);
+        border:1px solid rgba(91,140,255,0.32);
         color: var(--text);
       }
       .btnPrimary:hover{ background: rgba(91,140,255,0.22); }
       .btnDanger{
-        background: rgba(255,77,109,0.14);
-        border:1px solid rgba(255,77,109,0.30);
+        background: rgba(255,77,109,0.12);
+        border:1px solid rgba(255,77,109,0.28);
         color: var(--text);
       }
-      .chips{
+      .btnDanger:hover{ background: rgba(255,77,109,0.16); }
+      .btnRow{
         display:flex;
-        gap:8px;
-        flex-wrap:wrap;
-        margin-top:8px;
-      }
-      .chip{
-        padding:10px 12px;
-        border-radius:999px;
-        background: rgba(255,255,255,0.06);
-        border:1px solid rgba(231,238,252,0.14);
-        color: var(--text);
-        font-size:12px;
-        font-weight:900;
-        user-select:none;
-        cursor:pointer;
-      }
-      .chip.on{
-        background: rgba(38,208,124,0.14);
-        border-color: rgba(38,208,124,0.28);
-      }
-      .sep{
-        height:1px;
-        background: rgba(231,238,252,0.10);
-        margin: 14px 0;
+        gap:10px;
+        margin-top:12px;
       }
       .mono{
         font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
@@ -183,20 +148,13 @@
       }
       .out{
         background: rgba(0,0,0,0.35);
-        border:1px solid rgba(231,238,252,0.12);
+        border:1px solid rgba(255,255,255,0.10);
         border-radius: 14px;
         padding: 12px;
         overflow:auto;
-        min-height: 160px;
+        min-height: 212px;
         white-space: pre-wrap;
         word-break: break-word;
-      }
-      .status{
-        display:flex;
-        gap:10px;
-        flex-wrap:wrap;
-        align-items:center;
-        margin-top:10px;
       }
       .badge{
         display:inline-flex;
@@ -204,18 +162,35 @@
         gap:8px;
         padding:8px 10px;
         border-radius:999px;
-        border:1px solid rgba(231,238,252,0.14);
+        border:1px solid rgba(255,255,255,0.12);
         background: rgba(255,255,255,0.06);
         font-size:12px;
         font-weight:900;
-      }
-      .badge.ok{ border-color: rgba(38,208,124,0.28); background: rgba(38,208,124,0.12); }
-      .badge.bad{ border-color: rgba(255,77,109,0.30); background: rgba(255,77,109,0.12); }
-      .small{
-        font-size:12px;
         color: var(--muted);
-        font-weight:700;
       }
+      .badge.ok{
+        border-color: rgba(35,193,122,0.26);
+        background: rgba(35,193,122,0.12);
+        color: rgba(234,240,255,0.88);
+      }
+      .badge.bad{
+        border-color: rgba(255,77,109,0.26);
+        background: rgba(255,77,109,0.10);
+        color: rgba(234,240,255,0.88);
+      }
+      .status{
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        gap:10px;
+        margin-top:10px;
+      }
+      .small{
+        color: var(--muted);
+        font-size:12px;
+        font-weight:750;
+      }
+      .ghost{ color: rgba(234,240,255,0.44); }
     </style>
   </head>
 
@@ -224,48 +199,37 @@
       <div class="top">
         <div>
           <div class="title">Admin • Zoom Meetings</div>
-          <div class="sub">
-            Paste your <span class="mono">ADMIN_API_KEY</span>, find a user by email, then create a meeting.
-            <br/>Dates & times are easy: pick a day + start time + duration.
-          </div>
+          <div class="sub">Create meetings for a user. Date/time follows your device timezone (Boston / New York).</div>
         </div>
-        <div class="pill">
-          <span>🔒</span>
-          <span>Header: <span class="mono">x-admin-key</span></span>
-        </div>
+        <span class="badge" id="keyBadge">Admin key: not set</span>
       </div>
 
       <div class="grid">
-        <!-- Left: create meeting -->
+        <!-- Left: form -->
         <div class="card">
-          <h3>1) Create a meeting</h3>
-          <p class="hint">This will POST to <span class="mono">/meetings</span>. Your backend expects ISO timestamps.</p>
+          <div class="cardHeader">
+            <h3>Create</h3>
+            <button class="btnDanger" id="btnReset" type="button">Reset</button>
+          </div>
 
-          <label>ADMIN API KEY</label>
-          <input id="adminKey" placeholder="Paste ADMIN_API_KEY here" autocomplete="off" />
+          <label>Admin API Key</label>
+          <input id="adminKey" placeholder="ADMIN_API_KEY" autocomplete="off" />
 
-          <div class="sep"></div>
+          <div class="divider"></div>
 
+          <label>User email</label>
           <div class="row">
-            <div>
-              <label>User email</label>
-              <input id="email" placeholder="user@email.com" autocomplete="off" />
-            </div>
-            <div>
-              <label>User ID</label>
-              <input id="userId" placeholder="auto-filled after search" inputmode="numeric" />
-            </div>
+            <input id="email" placeholder="user@email.com" autocomplete="off" />
+            <button class="btn" id="btnFind" type="button">Find</button>
           </div>
 
-          <div class="btnRow">
-            <button class="btn" id="btnFind">Find user</button>
-            <button class="btnDanger" id="btnClear">Clear</button>
-          </div>
+          <label>User ID</label>
+          <input id="userId" placeholder="auto-filled" inputmode="numeric" />
 
-          <div class="sep"></div>
+          <div class="divider"></div>
 
           <label>Title</label>
-          <input id="title" placeholder="e.g. Weekly Check-in" />
+          <input id="title" placeholder="Weekly Check-in" />
 
           <label>Zoom URL</label>
           <input id="zoomUrl" placeholder="https://zoom.us/j/..." />
@@ -276,271 +240,217 @@
               <input id="date" type="date" />
             </div>
             <div>
-              <label>Start time</label>
-              <input id="time" type="time" />
+              <label>Start</label>
+              <input id="start" type="time" />
             </div>
-          </div>
-
-          <label>Duration</label>
-          <div class="chips" id="durChips">
-            <div class="chip on" data-min="30">30 min</div>
-            <div class="chip" data-min="15">15 min</div>
-            <div class="chip" data-min="45">45 min</div>
-            <div class="chip" data-min="60">60 min</div>
           </div>
 
           <div class="row">
             <div>
-              <label>Timezone</label>
-              <select id="tz">
-                <option value="local" selected>Use my local time</option>
-                <option value="utc">UTC</option>
-              </select>
-              <div class="small" style="margin-top:6px">
-                If you choose UTC, the ISO will be generated in UTC.
-              </div>
+              <label>Duration (min)</label>
+              <input id="duration" type="number" min="5" step="5" value="30" />
             </div>
             <div>
-              <label>End time (optional)</label>
-              <input id="endTime" type="time" />
-              <div class="small" style="margin-top:6px">
-                If you set this, duration is ignored.
-              </div>
+              <label>End (optional)</label>
+              <input id="end" type="time" />
             </div>
           </div>
 
           <div class="status">
-            <span class="badge" id="isoBadge">📅 ISO Preview</span>
-            <span class="small mono" id="isoPreview">Start: -  |  End: -</span>
+            <span class="badge" id="previewBadge">Preview</span>
+            <span class="small mono" id="previewText"><span class="ghost">Start:</span> -   <span class="ghost">End:</span> -</span>
           </div>
 
           <div class="btnRow">
-            <button class="btnPrimary" id="btnCreate">Create meeting</button>
+            <button class="btnPrimary" id="btnCreate" type="button">Create meeting</button>
           </div>
         </div>
 
         <!-- Right: output -->
         <div class="card">
-          <h3>Output</h3>
-          <p class="hint">Errors and responses will appear here.</p>
+          <div class="cardHeader">
+            <h3>Response</h3>
+            <span class="small mono">POST /meetings</span>
+          </div>
 
           <div class="out mono" id="out">-</div>
-
-          <div class="sep"></div>
-
-          <h3>Quick tips</h3>
-          <p class="hint">
-            • First click <b>Find user</b> to get the correct <span class="mono">userId</span>.<br/>
-            • Use a valid Zoom URL.<br/>
-            • Date + time are required.<br/>
-            • Meetings show in the app using the logged-in user's token.
-          </p>
         </div>
       </div>
     </div>
 
     <script>
-      const outEl = document.getElementById("out");
-      const isoPreviewEl = document.getElementById("isoPreview");
-      const isoBadgeEl = document.getElementById("isoBadge");
-
       const $ = (id) => document.getElementById(id);
+      const outEl = $("out");
+      const previewText = $("previewText");
+      const previewBadge = $("previewBadge");
+      const keyBadge = $("keyBadge");
 
-      function out(x) {
+      function out(x){
         outEl.textContent = typeof x === "string" ? x : JSON.stringify(x, null, 2);
       }
 
-      function adminKey() {
-        return $("adminKey").value.trim();
+      function adminKey(){
+        return ($("adminKey").value || "").trim();
       }
 
-      function setBadge(ok, label) {
-        isoBadgeEl.className = "badge " + (ok ? "ok" : "bad");
-        isoBadgeEl.textContent = (ok ? "✅ " : "⚠️ ") + label;
+      function syncKeyBadge(){
+        const k = adminKey();
+        if (k.length >= 8) {
+          keyBadge.className = "badge ok";
+          keyBadge.textContent = "Admin key: set";
+        } else {
+          keyBadge.className = "badge bad";
+          keyBadge.textContent = "Admin key: not set";
+        }
       }
 
-      // default date/time (today + next 30 min)
-      function initDefaults() {
-        const now = new Date();
-        const yyyy = now.getFullYear();
-        const mm = String(now.getMonth() + 1).padStart(2, "0");
-        const dd = String(now.getDate()).padStart(2, "0");
-        $("date").value = `${yyyy}-${mm}-${dd}`;
-
-        const rounded = new Date(now);
-        rounded.setMinutes(Math.ceil(rounded.getMinutes() / 15) * 15);
-        rounded.setSeconds(0, 0);
-        const hh = String(rounded.getHours()).padStart(2, "0");
-        const mi = String(rounded.getMinutes()).padStart(2, "0");
-        $("time").value = `${hh}:${mi}`;
+      function headers(){
+        const k = adminKey();
+        if (!k) throw new Error("Missing admin key.");
+        return { "x-admin-key": k };
       }
 
-      let durationMin = 30;
-
-      function getSelectedDuration() {
-        return durationMin;
-      }
-
-      function parseDateTime(dateStr, timeStr) {
-        // dateStr: YYYY-MM-DD, timeStr: HH:MM
-        const [y, m, d] = dateStr.split("-").map(Number);
-        const [hh, mm] = timeStr.split(":").map(Number);
+      function parseLocalDateTime(dateStr, timeStr){
+        const [y,m,d] = dateStr.split("-").map(Number);
+        const [hh,mm] = timeStr.split(":").map(Number);
         const dt = new Date();
-        dt.setFullYear(y, m - 1, d);
+        dt.setFullYear(y, m-1, d);
         dt.setHours(hh, mm, 0, 0);
         return dt;
       }
 
-      function toIso(dt, mode) {
-        // mode "utc" => ISO UTC
-        // mode "local" => also toISOString() (always UTC), but created from local time selection.
-        // In both cases, dt.toISOString() is standard for backend.
-        return dt.toISOString();
+      function setBadge(ok){
+        previewBadge.className = "badge " + (ok ? "ok" : "bad");
+        previewBadge.textContent = ok ? "✅ Ready" : "⚠️ Check";
       }
 
-      function updateIsoPreview() {
+      function computeStartEnd(){
         const dateStr = $("date").value;
-        const timeStr = $("time").value;
-        const endTimeStr = $("endTime").value;
-        const tzMode = $("tz").value;
+        const startStr = $("start").value;
+        const endStr = $("end").value;
+        const dur = Number($("duration").value || 30);
 
-        if (!dateStr || !timeStr) {
-          isoPreviewEl.textContent = "Start: -  |  End: -";
-          setBadge(false, "Pick date & start time");
-          return;
-        }
+        if (!dateStr || !startStr) return null;
 
-        const start = parseDateTime(dateStr, timeStr);
-
+        const start = parseLocalDateTime(dateStr, startStr);
         let end;
-        if (endTimeStr) {
-          end = parseDateTime(dateStr, endTimeStr);
+
+        if (endStr){
+          end = parseLocalDateTime(dateStr, endStr);
         } else {
-          end = new Date(start.getTime() + getSelectedDuration() * 60 * 1000);
+          end = new Date(start.getTime() + Math.max(5, dur) * 60 * 1000);
         }
 
-        if (!(end > start)) {
-          isoPreviewEl.textContent = "Start: -  |  End: -";
-          setBadge(false, "End must be after start");
-          return;
-        }
-
-        const startISO = toIso(start, tzMode);
-        const endISO = toIso(end, tzMode);
-
-        isoPreviewEl.textContent = `Start: ${startISO}  |  End: ${endISO}`;
-        setBadge(true, "ISO ready");
+        if (!(end > start)) return { bad:true, start, end };
+        return { start, end };
       }
 
-      // duration chips
-      $("durChips").addEventListener("click", (e) => {
-        const t = e.target;
-        if (!t.classList.contains("chip")) return;
-        document.querySelectorAll(".chip").forEach((c) => c.classList.remove("on"));
-        t.classList.add("on");
-        durationMin = Number(t.dataset.min || 30);
-        // if endTime is set, duration is ignored anyway
-        updateIsoPreview();
+      function updatePreview(){
+        const r = computeStartEnd();
+        if (!r){
+          previewText.innerHTML = `<span class="ghost">Start:</span> - &nbsp;&nbsp; <span class="ghost">End:</span> -`;
+          setBadge(false);
+          return;
+        }
+        const startISO = r.start.toISOString();
+        const endISO = r.end.toISOString();
+        previewText.textContent = `Start: ${startISO}   End: ${endISO}`;
+        setBadge(!r.bad);
+      }
+
+      function initDefaults(){
+        const now = new Date();
+        const yyyy = now.getFullYear();
+        const mm = String(now.getMonth()+1).padStart(2,"0");
+        const dd = String(now.getDate()).padStart(2,"0");
+        $("date").value = `${yyyy}-${mm}-${dd}`;
+
+        const rounded = new Date(now);
+        rounded.setMinutes(Math.ceil(rounded.getMinutes() / 15) * 15);
+        rounded.setSeconds(0,0);
+        const hh = String(rounded.getHours()).padStart(2,"0");
+        const mi = String(rounded.getMinutes()).padStart(2,"0");
+        $("start").value = `${hh}:${mi}`;
+
+        $("duration").value = "30";
+        $("end").value = "";
+      }
+
+      ["adminKey"].forEach((id)=>{
+        $(id).addEventListener("input", () => { syncKeyBadge(); });
       });
 
-      // input changes update preview
-      ["date","time","endTime","tz"].forEach((id) => {
-        $(id).addEventListener("change", updateIsoPreview);
-        $(id).addEventListener("input", updateIsoPreview);
+      ["date","start","end","duration"].forEach((id)=>{
+        $(id).addEventListener("input", updatePreview);
+        $(id).addEventListener("change", updatePreview);
       });
 
-      $("btnClear").onclick = () => {
+      $("btnReset").onclick = () => {
+        $("adminKey").value = "";
         $("email").value = "";
         $("userId").value = "";
         $("title").value = "";
         $("zoomUrl").value = "";
-        $("endTime").value = "";
+        initDefaults();
         out("-");
-        updateIsoPreview();
+        syncKeyBadge();
+        updatePreview();
       };
 
       $("btnFind").onclick = async () => {
-        try {
-          const key = adminKey();
+        try{
           const email = $("email").value.trim().toLowerCase();
-
-          if (!key) return out("❌ Paste ADMIN_API_KEY first.");
-          if (!email) return out("❌ Enter a user email.");
-
-          const r = await fetch(`/admin/users?email=${encodeURIComponent(email)}`, {
-            headers: { "x-admin-key": key },
-          });
-
-          const j = await r.json().catch(() => ({}));
+          if (!email) return out("Enter an email.");
+          const r = await fetch(`/admin/users?email=${encodeURIComponent(email)}`, { headers: headers() });
+          const j = await r.json().catch(()=> ({}));
           out(j);
-
           if (!r.ok) throw new Error(j?.error ?? `HTTP ${r.status}`);
-
-          if (j.user?.id) {
-            $("userId").value = j.user.id;
-          } else {
-            out("⚠️ User not found. Check email or create account first.");
-          }
-        } catch (e) {
+          if (j.user?.id) $("userId").value = String(j.user.id);
+          else out("User not found.");
+        } catch(e){
           out(String(e?.message ?? e));
         }
       };
 
       $("btnCreate").onclick = async () => {
-        try {
-          const key = adminKey();
-          if (!key) return out("❌ Paste ADMIN_API_KEY first.");
-
+        try{
           const userId = Number($("userId").value);
           const title = $("title").value.trim();
           const zoomUrl = $("zoomUrl").value.trim();
-          const dateStr = $("date").value;
-          const timeStr = $("time").value;
-          const endTimeStr = $("endTime").value;
 
-          if (!userId) return out("❌ Missing userId. Click 'Find user' first (or type it).");
-          if (!title) return out("❌ Title is required.");
-          if (!zoomUrl) return out("❌ Zoom URL is required.");
-          if (!dateStr || !timeStr) return out("❌ Date and start time are required.");
-
-          const start = parseDateTime(dateStr, timeStr);
-          let end;
-          if (endTimeStr) end = parseDateTime(dateStr, endTimeStr);
-          else end = new Date(start.getTime() + getSelectedDuration() * 60 * 1000);
-
-          if (!(end > start)) return out("❌ End must be after start.");
+          const r = computeStartEnd();
+          if (!r) return out("Pick a date and start time.");
+          if (r.bad) return out("End must be after start.");
+          if (!userId) return out("Missing userId (use Find).");
+          if (!title) return out("Missing title.");
+          if (!zoomUrl) return out("Missing Zoom URL.");
 
           const body = {
             userId,
             title,
-            start: start.toISOString(),
-            end: end.toISOString(),
+            start: r.start.toISOString(),
+            end: r.end.toISOString(),
             zoomUrl,
           };
 
-          const r = await fetch(`/meetings`, {
+          const resp = await fetch(`/meetings`, {
             method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "x-admin-key": key,
-            },
+            headers: { "Content-Type":"application/json", ...headers() },
             body: JSON.stringify(body),
           });
 
-          const j = await r.json().catch(() => ({}));
-          out(j);
+          const json = await resp.json().catch(()=> ({}));
+          out(json);
+          if (!resp.ok) throw new Error(json?.error ?? `HTTP ${resp.status}`);
 
-          if (!r.ok) throw new Error(j?.error ?? `HTTP ${r.status}`);
-
-          out({ ok: true, created: j.meeting ?? j });
-
-        } catch (e) {
+        } catch(e){
           out(String(e?.message ?? e));
         }
       };
 
       initDefaults();
-      updateIsoPreview();
+      syncKeyBadge();
+      updatePreview();
     </script>
   </body>
 </html>
