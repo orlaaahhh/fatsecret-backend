@@ -2,213 +2,263 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>Admin • Zoom Meetings</title>
+    <title>Admin • Meetings</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+
     <style>
       :root{
-        --bg:#0b0f19;
-        --card:#0f1626;
-        --line:rgba(255,255,255,0.08);
-        --text:#eaf0ff;
-        --muted:rgba(234,240,255,0.62);
-        --accent:#5b8cff;
-        --danger:#ff4d6d;
-        --shadow: 0 18px 60px rgba(0,0,0,0.45);
-        --r:16px;
+        --bg:#f6f8fb;
+        --card:#ffffff;
+        --text:#0f172a;
+        --muted:#64748b;
+        --line:#e5e7eb;
+        --soft:#f1f5f9;
+
+        --primary:#2563eb;
+        --primarySoft:#eff6ff;
+
+        --danger:#dc2626;
+        --dangerSoft:#fef2f2;
+
+        --radius:14px;
       }
+
       *{ box-sizing:border-box; }
+      html,body{ height:100%; }
       body{
         margin:0;
-        font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
-        background:
-          radial-gradient(900px 420px at 20% -10%, rgba(91,140,255,0.18), transparent 60%),
-          radial-gradient(900px 420px at 90% 0%, rgba(35,193,122,0.10), transparent 55%),
-          var(--bg);
+        background:var(--bg);
         color:var(--text);
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, "Noto Sans", "Apple Color Emoji","Segoe UI Emoji";
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
       }
+
       .wrap{
-        max-width: 900px;
+        max-width: 980px;
         margin: 28px auto;
-        padding: 0 14px 28px;
+        padding: 0 16px 40px;
       }
-      .top{
+
+      .topbar{
         display:flex;
         align-items:flex-start;
         justify-content:space-between;
         gap:12px;
-        margin-bottom:14px;
+        margin-bottom: 14px;
       }
+
       .title{
-        font-size:16px;
-        font-weight:900;
-        letter-spacing:0.2px;
+        font-size:18px;
+        font-weight:800;
+        letter-spacing:-0.2px;
       }
-      .sub{
+      .subtitle{
         margin-top:6px;
-        color:var(--muted);
-        font-size:12px;
-        font-weight:650;
-      }
-      .grid{
-        display:grid;
-        grid-template-columns: 1fr 1fr;
-        gap:12px;
-      }
-      @media (max-width: 900px){
-        .grid{ grid-template-columns: 1fr; }
-      }
-      .card{
-        background: rgba(15,22,38,0.72);
-        border:1px solid var(--line);
-        border-radius: var(--r);
-        padding:14px;
-        box-shadow: var(--shadow);
-        backdrop-filter: blur(8px);
-      }
-      .cardHeader{
-        display:flex;
-        align-items:center;
-        justify-content:space-between;
-        gap:10px;
-        margin-bottom:10px;
-      }
-      h3{
-        margin:0;
         font-size:13px;
-        font-weight:900;
-        letter-spacing:0.2px;
+        color:var(--muted);
+        font-weight:600;
       }
-      .divider{
-        height:1px;
-        background: rgba(255,255,255,0.08);
-        margin: 12px 0;
-      }
-      label{
-        display:block;
-        margin: 10px 0 6px;
-        color: var(--muted);
-        font-size:12px;
-        font-weight:850;
-      }
-      input{
-        width:100%;
-        padding:12px 12px;
-        border-radius: 14px;
-        border:1px solid rgba(255,255,255,0.10);
-        background: rgba(255,255,255,0.06);
-        color: var(--text);
-        outline:none;
-        font-weight:750;
-      }
-      input::placeholder{ color: rgba(234,240,255,0.35); font-weight:700; }
-      input:focus{
-        border-color: rgba(91,140,255,0.45);
-        box-shadow: 0 0 0 4px rgba(91,140,255,0.14);
-      }
-      .row{
-        display:flex;
-        gap:10px;
-      }
-      .row > *{ flex:1; }
-      button{
-        border:0;
-        cursor:pointer;
-        border-radius: 14px;
-        padding: 12px 14px;
-        font-weight:900;
-        letter-spacing:0.2px;
-        user-select:none;
-      }
-      .btn{
-        background: rgba(255,255,255,0.06);
-        border:1px solid rgba(255,255,255,0.12);
-        color: var(--text);
-      }
-      .btn:hover{ background: rgba(255,255,255,0.09); }
-      .btnPrimary{
-        background: rgba(91,140,255,0.18);
-        border:1px solid rgba(91,140,255,0.32);
-        color: var(--text);
-      }
-      .btnPrimary:hover{ background: rgba(91,140,255,0.22); }
-      .btnDanger{
-        background: rgba(255,77,109,0.12);
-        border:1px solid rgba(255,77,109,0.28);
-        color: var(--text);
-      }
-      .btnDanger:hover{ background: rgba(255,77,109,0.16); }
-      .btnRow{
-        display:flex;
-        gap:10px;
-        margin-top:12px;
-      }
-      .mono{
-        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-        font-size: 12px;
-      }
-      .out{
-        background: rgba(0,0,0,0.35);
-        border:1px solid rgba(255,255,255,0.10);
-        border-radius: 14px;
-        padding: 12px;
-        overflow:auto;
-        min-height: 212px;
-        white-space: pre-wrap;
-        word-break: break-word;
-      }
+
       .badge{
         display:inline-flex;
         align-items:center;
         gap:8px;
-        padding:8px 10px;
+        padding:10px 12px;
+        border:1px solid var(--line);
         border-radius:999px;
-        border:1px solid rgba(255,255,255,0.12);
-        background: rgba(255,255,255,0.06);
+        background:var(--card);
+        color:var(--muted);
         font-size:12px;
-        font-weight:900;
-        color: var(--muted);
+        font-weight:700;
+        white-space:nowrap;
       }
       .badge.ok{
-        border-color: rgba(35,193,122,0.26);
-        background: rgba(35,193,122,0.12);
-        color: rgba(234,240,255,0.88);
+        border-color: rgba(37,99,235,0.25);
+        background: var(--primarySoft);
+        color: #1d4ed8;
       }
       .badge.bad{
-        border-color: rgba(255,77,109,0.26);
-        background: rgba(255,77,109,0.10);
-        color: rgba(234,240,255,0.88);
+        border-color: rgba(220,38,38,0.20);
+        background: var(--dangerSoft);
+        color: var(--danger);
       }
-      .status{
+
+      .grid{
+        display:grid;
+        grid-template-columns: 1.15fr 0.85fr;
+        gap:14px;
+      }
+      @media (max-width: 940px){
+        .grid{ grid-template-columns: 1fr; }
+      }
+
+      .card{
+        background:var(--card);
+        border:1px solid var(--line);
+        border-radius: var(--radius);
+        padding: 16px;
+      }
+
+      .cardHeader{
         display:flex;
         align-items:center;
         justify-content:space-between;
-        gap:10px;
-        margin-top:10px;
+        gap:12px;
+        margin-bottom: 12px;
       }
-      .small{
-        color: var(--muted);
+
+      h3{
+        margin:0;
+        font-size:13px;
+        font-weight:800;
+        color:var(--text);
+        letter-spacing:0.2px;
+        text-transform: uppercase;
+      }
+
+      .divider{
+        height:1px;
+        background:var(--line);
+        margin: 14px 0;
+      }
+
+      label{
+        display:block;
+        margin: 10px 0 6px;
         font-size:12px;
-        font-weight:750;
+        font-weight:700;
+        color: var(--muted);
       }
-      .ghost{ color: rgba(234,240,255,0.44); }
+
+      input{
+        width:100%;
+        height:44px;
+        padding: 10px 12px;
+        border-radius: 12px;
+        border:1px solid var(--line);
+        background:#fff;
+        color: var(--text);
+        font-size:14px;
+        font-weight:600;
+        outline:none;
+      }
+      input::placeholder{ color:#94a3b8; font-weight:600; }
+      input:focus{
+        border-color: rgba(37,99,235,0.45);
+        box-shadow: 0 0 0 4px rgba(37,99,235,0.10);
+      }
+
+      .row{
+        display:flex;
+        gap:12px;
+      }
+      .row > *{ flex:1; }
+
+      .actions{
+        display:flex;
+        gap:10px;
+        margin-top: 14px;
+      }
+
+      button{
+        height:44px;
+        padding: 0 14px;
+        border-radius: 12px;
+        border:1px solid var(--line);
+        background: #fff;
+        color: var(--text);
+        font-size:13px;
+        font-weight:800;
+        cursor:pointer;
+      }
+      button:hover{ background: var(--soft); }
+
+      .btnPrimary{
+        border-color: rgba(37,99,235,0.25);
+        background: var(--primary);
+        color:#fff;
+      }
+      .btnPrimary:hover{
+        background: #1d4ed8;
+      }
+
+      .btnGhost{
+        background:#fff;
+      }
+
+      .btnDanger{
+        border-color: rgba(220,38,38,0.20);
+        background: var(--dangerSoft);
+        color: var(--danger);
+      }
+      .btnDanger:hover{
+        background: #fee2e2;
+      }
+
+      .muted{
+        color:var(--muted);
+        font-size:12px;
+        font-weight:700;
+      }
+
+      .mono{
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      }
+
+      .out{
+        height: 420px;
+        overflow:auto;
+        padding: 12px;
+        border-radius: 12px;
+        border:1px solid var(--line);
+        background: #fbfcfe;
+        white-space: pre-wrap;
+        word-break: break-word;
+        font-size: 12px;
+        line-height: 1.45;
+      }
+
+      .preview{
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        gap:12px;
+        margin-top: 12px;
+        padding: 10px 12px;
+        border-radius: 12px;
+        border:1px solid var(--line);
+        background: #fbfcfe;
+      }
+      .preview strong{
+        font-size:12px;
+        text-transform: uppercase;
+        letter-spacing: 0.2px;
+      }
+      .previewText{
+        font-size:12px;
+        font-weight:700;
+        color: var(--muted);
+        text-align:right;
+      }
     </style>
   </head>
 
   <body>
     <div class="wrap">
-      <div class="top">
+      <div class="topbar">
         <div>
-          <div class="title">Admin • Zoom Meetings</div>
-          <div class="sub">Create meetings for a user. Date/time follows your device timezone (Boston / New York).</div>
+          <div class="title">Admin</div>
+          <div class="subtitle">Create Zoom meetings for users. Date/time uses your device timezone (Boston / New York).</div>
         </div>
-        <span class="badge" id="keyBadge">Admin key: not set</span>
+        <div class="badge bad" id="keyBadge">Admin key: not set</div>
       </div>
 
       <div class="grid">
-        <!-- Left: form -->
+        <!-- FORM -->
         <div class="card">
           <div class="cardHeader">
-            <h3>Create</h3>
+            <h3>Create meeting</h3>
             <button class="btnDanger" id="btnReset" type="button">Reset</button>
           </div>
 
@@ -220,11 +270,11 @@
           <label>User email</label>
           <div class="row">
             <input id="email" placeholder="user@email.com" autocomplete="off" />
-            <button class="btn" id="btnFind" type="button">Find</button>
+            <button class="btnGhost" id="btnFind" type="button">Find</button>
           </div>
 
           <label>User ID</label>
-          <input id="userId" placeholder="auto-filled" inputmode="numeric" />
+          <input id="userId" placeholder="Auto-filled" inputmode="numeric" />
 
           <div class="divider"></div>
 
@@ -256,23 +306,22 @@
             </div>
           </div>
 
-          <div class="status">
-            <span class="badge" id="previewBadge">Preview</span>
-            <span class="small mono" id="previewText"><span class="ghost">Start:</span> -   <span class="ghost">End:</span> -</span>
+          <div class="preview">
+            <strong id="previewBadge">Preview</strong>
+            <div class="previewText mono" id="previewText">Start: -   End: -</div>
           </div>
 
-          <div class="btnRow">
-            <button class="btnPrimary" id="btnCreate" type="button">Create meeting</button>
+          <div class="actions">
+            <button class="btnPrimary" id="btnCreate" type="button">Create</button>
           </div>
         </div>
 
-        <!-- Right: output -->
+        <!-- OUTPUT -->
         <div class="card">
           <div class="cardHeader">
             <h3>Response</h3>
-            <span class="small mono">POST /meetings</span>
+            <div class="muted mono">POST /meetings</div>
           </div>
-
           <div class="out mono" id="out">-</div>
         </div>
       </div>
@@ -281,9 +330,9 @@
     <script>
       const $ = (id) => document.getElementById(id);
       const outEl = $("out");
-      const previewText = $("previewText");
-      const previewBadge = $("previewBadge");
       const keyBadge = $("keyBadge");
+      const previewBadge = $("previewBadge");
+      const previewText = $("previewText");
 
       function out(x){
         outEl.textContent = typeof x === "string" ? x : JSON.stringify(x, null, 2);
@@ -295,7 +344,7 @@
 
       function syncKeyBadge(){
         const k = adminKey();
-        if (k.length >= 8) {
+        if (k.length >= 8){
           keyBadge.className = "badge ok";
           keyBadge.textContent = "Admin key: set";
         } else {
@@ -317,11 +366,6 @@
         dt.setFullYear(y, m-1, d);
         dt.setHours(hh, mm, 0, 0);
         return dt;
-      }
-
-      function setBadge(ok){
-        previewBadge.className = "badge " + (ok ? "ok" : "bad");
-        previewBadge.textContent = ok ? "✅ Ready" : "⚠️ Check";
       }
 
       function computeStartEnd(){
@@ -348,14 +392,14 @@
       function updatePreview(){
         const r = computeStartEnd();
         if (!r){
-          previewText.innerHTML = `<span class="ghost">Start:</span> - &nbsp;&nbsp; <span class="ghost">End:</span> -`;
-          setBadge(false);
+          previewBadge.textContent = "Preview";
+          previewBadge.style.color = "#64748b";
+          previewText.textContent = "Start: -   End: -";
           return;
         }
-        const startISO = r.start.toISOString();
-        const endISO = r.end.toISOString();
-        previewText.textContent = `Start: ${startISO}   End: ${endISO}`;
-        setBadge(!r.bad);
+        previewBadge.textContent = r.bad ? "Check" : "Ready";
+        previewBadge.style.color = r.bad ? "#dc2626" : "#16a34a";
+        previewText.textContent = `Start: ${r.start.toISOString()}   End: ${r.end.toISOString()}`;
       }
 
       function initDefaults(){
@@ -376,8 +420,8 @@
         $("end").value = "";
       }
 
-      ["adminKey"].forEach((id)=>{
-        $(id).addEventListener("input", () => { syncKeyBadge(); });
+      $("adminKey").addEventListener("input", () => {
+        syncKeyBadge();
       });
 
       ["date","start","end","duration"].forEach((id)=>{
@@ -401,12 +445,14 @@
         try{
           const email = $("email").value.trim().toLowerCase();
           if (!email) return out("Enter an email.");
+
           const r = await fetch(`/admin/users?email=${encodeURIComponent(email)}`, { headers: headers() });
           const j = await r.json().catch(()=> ({}));
+
           out(j);
           if (!r.ok) throw new Error(j?.error ?? `HTTP ${r.status}`);
-          if (j.user?.id) $("userId").value = String(j.user.id);
-          else out("User not found.");
+
+          $("userId").value = j.user?.id ? String(j.user.id) : "";
         } catch(e){
           out(String(e?.message ?? e));
         }
