@@ -1,59 +1,546 @@
 <!doctype html>
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>Admin - Meetings</title>
+    <title>Admin • Zoom Meetings</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <style>
-      body { font-family: system-ui; max-width: 720px; margin: 24px auto; padding: 0 12px; }
-      input { width: 100%; padding: 10px; margin: 6px 0 12px; }
-      button { padding: 10px 14px; cursor: pointer; }
-      pre { background: #111; color: #0f0; padding: 12px; overflow: auto; border-radius: 8px; }
-      .row { display: flex; gap: 12px; }
-      .row > div { flex: 1; }
-      small { color: #555; }
+      :root{
+        --bg:#0b1220;
+        --card:rgba(255,255,255,0.06);
+        --card2:rgba(255,255,255,0.08);
+        --text:#e7eefc;
+        --muted:rgba(231,238,252,0.68);
+        --line:rgba(231,238,252,0.14);
+        --accent:#5b8cff;
+        --danger:#ff4d6d;
+        --ok:#26d07c;
+        --shadow: 0 18px 60px rgba(0,0,0,0.35);
+        --radius:18px;
+      }
+      *{ box-sizing:border-box; }
+      body{
+        margin:0;
+        font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+        background:
+          radial-gradient(900px 380px at 20% -10%, rgba(91,140,255,0.22), transparent 60%),
+          radial-gradient(900px 380px at 90% 0%, rgba(38,208,124,0.12), transparent 55%),
+          radial-gradient(900px 380px at 60% 110%, rgba(255,77,109,0.10), transparent 55%),
+          var(--bg);
+        color:var(--text);
+      }
+      .wrap{
+        max-width: 980px;
+        margin: 28px auto;
+        padding: 0 14px 24px;
+      }
+      .top{
+        display:flex;
+        align-items:flex-start;
+        justify-content:space-between;
+        gap:14px;
+        margin-bottom:14px;
+      }
+      .title{
+        font-size:18px;
+        font-weight:900;
+        letter-spacing:0.2px;
+      }
+      .sub{
+        margin-top:6px;
+        color:var(--muted);
+        font-size:13px;
+        font-weight:650;
+        line-height:1.35;
+      }
+      .pill{
+        display:inline-flex;
+        align-items:center;
+        gap:8px;
+        padding:10px 12px;
+        border-radius:999px;
+        background:rgba(91,140,255,0.12);
+        border:1px solid rgba(91,140,255,0.22);
+        color: var(--text);
+        font-size:12px;
+        font-weight:850;
+        user-select:none;
+      }
+      .grid{
+        display:grid;
+        grid-template-columns: 1.1fr 0.9fr;
+        gap:14px;
+      }
+      @media (max-width: 920px){
+        .grid{ grid-template-columns: 1fr; }
+      }
+      .card{
+        background: var(--card);
+        border:1px solid var(--line);
+        border-radius: var(--radius);
+        padding:14px;
+        box-shadow: var(--shadow);
+      }
+      .card h3{
+        margin:0 0 10px;
+        font-size:14px;
+        font-weight:900;
+      }
+      .hint{
+        margin: 0 0 12px;
+        color: var(--muted);
+        font-size:12px;
+        font-weight:650;
+        line-height:1.35;
+      }
+      label{
+        display:block;
+        margin: 10px 0 6px;
+        color: var(--muted);
+        font-size:12px;
+        font-weight:850;
+      }
+      input, select, textarea{
+        width:100%;
+        padding:12px 12px;
+        border-radius: 14px;
+        border:1px solid rgba(231,238,252,0.14);
+        background: rgba(255,255,255,0.06);
+        color: var(--text);
+        outline:none;
+        font-weight:750;
+      }
+      input::placeholder, textarea::placeholder{ color: rgba(231,238,252,0.45); font-weight:700; }
+      input:focus, select:focus, textarea:focus{
+        border-color: rgba(91,140,255,0.48);
+        box-shadow: 0 0 0 4px rgba(91,140,255,0.12);
+      }
+      .row{
+        display:flex;
+        gap:10px;
+      }
+      .row > *{ flex:1; }
+      .btnRow{
+        display:flex;
+        gap:10px;
+        margin-top:12px;
+        flex-wrap:wrap;
+      }
+      button{
+        border:0;
+        cursor:pointer;
+        border-radius: 14px;
+        padding: 12px 14px;
+        font-weight:900;
+        letter-spacing:0.2px;
+      }
+      .btn{
+        background: rgba(255,255,255,0.08);
+        border:1px solid rgba(231,238,252,0.14);
+        color: var(--text);
+      }
+      .btn:hover{ background: rgba(255,255,255,0.10); }
+      .btnPrimary{
+        background: rgba(91,140,255,0.18);
+        border:1px solid rgba(91,140,255,0.34);
+        color: var(--text);
+      }
+      .btnPrimary:hover{ background: rgba(91,140,255,0.22); }
+      .btnDanger{
+        background: rgba(255,77,109,0.14);
+        border:1px solid rgba(255,77,109,0.30);
+        color: var(--text);
+      }
+      .chips{
+        display:flex;
+        gap:8px;
+        flex-wrap:wrap;
+        margin-top:8px;
+      }
+      .chip{
+        padding:10px 12px;
+        border-radius:999px;
+        background: rgba(255,255,255,0.06);
+        border:1px solid rgba(231,238,252,0.14);
+        color: var(--text);
+        font-size:12px;
+        font-weight:900;
+        user-select:none;
+        cursor:pointer;
+      }
+      .chip.on{
+        background: rgba(38,208,124,0.14);
+        border-color: rgba(38,208,124,0.28);
+      }
+      .sep{
+        height:1px;
+        background: rgba(231,238,252,0.10);
+        margin: 14px 0;
+      }
+      .mono{
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        font-size: 12px;
+      }
+      .out{
+        background: rgba(0,0,0,0.35);
+        border:1px solid rgba(231,238,252,0.12);
+        border-radius: 14px;
+        padding: 12px;
+        overflow:auto;
+        min-height: 160px;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+      .status{
+        display:flex;
+        gap:10px;
+        flex-wrap:wrap;
+        align-items:center;
+        margin-top:10px;
+      }
+      .badge{
+        display:inline-flex;
+        align-items:center;
+        gap:8px;
+        padding:8px 10px;
+        border-radius:999px;
+        border:1px solid rgba(231,238,252,0.14);
+        background: rgba(255,255,255,0.06);
+        font-size:12px;
+        font-weight:900;
+      }
+      .badge.ok{ border-color: rgba(38,208,124,0.28); background: rgba(38,208,124,0.12); }
+      .badge.bad{ border-color: rgba(255,77,109,0.30); background: rgba(255,77,109,0.12); }
+      .small{
+        font-size:12px;
+        color: var(--muted);
+        font-weight:700;
+      }
     </style>
   </head>
+
   <body>
-    <h2>Admin Meetings</h2>
-    <p><small>Questa pagina chiama il tuo backend. Non salvare l’admin key nel codice: incollala qui.</small></p>
-
-    <label>ADMIN API KEY (header x-admin-key)</label>
-    <input id="adminKey" placeholder="incolla qui la ADMIN_API_KEY" />
-
-    <h3>1) Trova userId da email</h3>
-    <label>Email utente</label>
-    <input id="email" placeholder="es: test@test.com" />
-    <button id="btnFind">Trova userId</button>
-    <p>UserId: <b id="userIdLabel">-</b></p>
-
-    <h3>2) Crea meeting</h3>
-
-    <div class="row">
-      <div>
-        <label>userId</label>
-        <input id="userId" placeholder="es: 1" />
+    <div class="wrap">
+      <div class="top">
+        <div>
+          <div class="title">Admin • Zoom Meetings</div>
+          <div class="sub">
+            Paste your <span class="mono">ADMIN_API_KEY</span>, find a user by email, then create a meeting.
+            <br/>Dates & times are easy: pick a day + start time + duration.
+          </div>
+        </div>
+        <div class="pill">
+          <span>🔒</span>
+          <span>Header: <span class="mono">x-admin-key</span></span>
+        </div>
       </div>
-      <div>
-        <label>Titolo</label>
-        <input id="title" placeholder="es: Call Zoom" />
+
+      <div class="grid">
+        <!-- Left: create meeting -->
+        <div class="card">
+          <h3>1) Create a meeting</h3>
+          <p class="hint">This will POST to <span class="mono">/meetings</span>. Your backend expects ISO timestamps.</p>
+
+          <label>ADMIN API KEY</label>
+          <input id="adminKey" placeholder="Paste ADMIN_API_KEY here" autocomplete="off" />
+
+          <div class="sep"></div>
+
+          <div class="row">
+            <div>
+              <label>User email</label>
+              <input id="email" placeholder="user@email.com" autocomplete="off" />
+            </div>
+            <div>
+              <label>User ID</label>
+              <input id="userId" placeholder="auto-filled after search" inputmode="numeric" />
+            </div>
+          </div>
+
+          <div class="btnRow">
+            <button class="btn" id="btnFind">Find user</button>
+            <button class="btnDanger" id="btnClear">Clear</button>
+          </div>
+
+          <div class="sep"></div>
+
+          <label>Title</label>
+          <input id="title" placeholder="e.g. Weekly Check-in" />
+
+          <label>Zoom URL</label>
+          <input id="zoomUrl" placeholder="https://zoom.us/j/..." />
+
+          <div class="row">
+            <div>
+              <label>Date</label>
+              <input id="date" type="date" />
+            </div>
+            <div>
+              <label>Start time</label>
+              <input id="time" type="time" />
+            </div>
+          </div>
+
+          <label>Duration</label>
+          <div class="chips" id="durChips">
+            <div class="chip on" data-min="30">30 min</div>
+            <div class="chip" data-min="15">15 min</div>
+            <div class="chip" data-min="45">45 min</div>
+            <div class="chip" data-min="60">60 min</div>
+          </div>
+
+          <div class="row">
+            <div>
+              <label>Timezone</label>
+              <select id="tz">
+                <option value="local" selected>Use my local time</option>
+                <option value="utc">UTC</option>
+              </select>
+              <div class="small" style="margin-top:6px">
+                If you choose UTC, the ISO will be generated in UTC.
+              </div>
+            </div>
+            <div>
+              <label>End time (optional)</label>
+              <input id="endTime" type="time" />
+              <div class="small" style="margin-top:6px">
+                If you set this, duration is ignored.
+              </div>
+            </div>
+          </div>
+
+          <div class="status">
+            <span class="badge" id="isoBadge">📅 ISO Preview</span>
+            <span class="small mono" id="isoPreview">Start: -  |  End: -</span>
+          </div>
+
+          <div class="btnRow">
+            <button class="btnPrimary" id="btnCreate">Create meeting</button>
+          </div>
+        </div>
+
+        <!-- Right: output -->
+        <div class="card">
+          <h3>Output</h3>
+          <p class="hint">Errors and responses will appear here.</p>
+
+          <div class="out mono" id="out">-</div>
+
+          <div class="sep"></div>
+
+          <h3>Quick tips</h3>
+          <p class="hint">
+            • First click <b>Find user</b> to get the correct <span class="mono">userId</span>.<br/>
+            • Use a valid Zoom URL.<br/>
+            • Date + time are required.<br/>
+            • Meetings show in the app using the logged-in user's token.
+          </p>
+        </div>
       </div>
     </div>
 
-    <label>Start (ISO, es: 2026-01-22T10:00:00.000Z)</label>
-    <input id="start" placeholder="2026-01-22T10:00:00.000Z" />
+    <script>
+      const outEl = document.getElementById("out");
+      const isoPreviewEl = document.getElementById("isoPreview");
+      const isoBadgeEl = document.getElementById("isoBadge");
 
-    <label>End (ISO, es: 2026-01-22T10:30:00.000Z)</label>
-    <input id="end" placeholder="2026-01-22T10:30:00.000Z" />
+      const $ = (id) => document.getElementById(id);
 
-    <label>Zoom URL</label>
-    <input id="zoomUrl" placeholder="https://zoom.us/j/..." />
+      function out(x) {
+        outEl.textContent = typeof x === "string" ? x : JSON.stringify(x, null, 2);
+      }
 
-    <button id="btnCreate">Crea meeting</button>
+      function adminKey() {
+        return $("adminKey").value.trim();
+      }
 
-    <h3>Output</h3>
-    <pre id="out">-</pre>
+      function setBadge(ok, label) {
+        isoBadgeEl.className = "badge " + (ok ? "ok" : "bad");
+        isoBadgeEl.textContent = (ok ? "✅ " : "⚠️ ") + label;
+      }
 
-    <script src="./admin.js"></script>
+      // default date/time (today + next 30 min)
+      function initDefaults() {
+        const now = new Date();
+        const yyyy = now.getFullYear();
+        const mm = String(now.getMonth() + 1).padStart(2, "0");
+        const dd = String(now.getDate()).padStart(2, "0");
+        $("date").value = `${yyyy}-${mm}-${dd}`;
+
+        const rounded = new Date(now);
+        rounded.setMinutes(Math.ceil(rounded.getMinutes() / 15) * 15);
+        rounded.setSeconds(0, 0);
+        const hh = String(rounded.getHours()).padStart(2, "0");
+        const mi = String(rounded.getMinutes()).padStart(2, "0");
+        $("time").value = `${hh}:${mi}`;
+      }
+
+      let durationMin = 30;
+
+      function getSelectedDuration() {
+        return durationMin;
+      }
+
+      function parseDateTime(dateStr, timeStr) {
+        // dateStr: YYYY-MM-DD, timeStr: HH:MM
+        const [y, m, d] = dateStr.split("-").map(Number);
+        const [hh, mm] = timeStr.split(":").map(Number);
+        const dt = new Date();
+        dt.setFullYear(y, m - 1, d);
+        dt.setHours(hh, mm, 0, 0);
+        return dt;
+      }
+
+      function toIso(dt, mode) {
+        // mode "utc" => ISO UTC
+        // mode "local" => also toISOString() (always UTC), but created from local time selection.
+        // In both cases, dt.toISOString() is standard for backend.
+        return dt.toISOString();
+      }
+
+      function updateIsoPreview() {
+        const dateStr = $("date").value;
+        const timeStr = $("time").value;
+        const endTimeStr = $("endTime").value;
+        const tzMode = $("tz").value;
+
+        if (!dateStr || !timeStr) {
+          isoPreviewEl.textContent = "Start: -  |  End: -";
+          setBadge(false, "Pick date & start time");
+          return;
+        }
+
+        const start = parseDateTime(dateStr, timeStr);
+
+        let end;
+        if (endTimeStr) {
+          end = parseDateTime(dateStr, endTimeStr);
+        } else {
+          end = new Date(start.getTime() + getSelectedDuration() * 60 * 1000);
+        }
+
+        if (!(end > start)) {
+          isoPreviewEl.textContent = "Start: -  |  End: -";
+          setBadge(false, "End must be after start");
+          return;
+        }
+
+        const startISO = toIso(start, tzMode);
+        const endISO = toIso(end, tzMode);
+
+        isoPreviewEl.textContent = `Start: ${startISO}  |  End: ${endISO}`;
+        setBadge(true, "ISO ready");
+      }
+
+      // duration chips
+      $("durChips").addEventListener("click", (e) => {
+        const t = e.target;
+        if (!t.classList.contains("chip")) return;
+        document.querySelectorAll(".chip").forEach((c) => c.classList.remove("on"));
+        t.classList.add("on");
+        durationMin = Number(t.dataset.min || 30);
+        // if endTime is set, duration is ignored anyway
+        updateIsoPreview();
+      });
+
+      // input changes update preview
+      ["date","time","endTime","tz"].forEach((id) => {
+        $(id).addEventListener("change", updateIsoPreview);
+        $(id).addEventListener("input", updateIsoPreview);
+      });
+
+      $("btnClear").onclick = () => {
+        $("email").value = "";
+        $("userId").value = "";
+        $("title").value = "";
+        $("zoomUrl").value = "";
+        $("endTime").value = "";
+        out("-");
+        updateIsoPreview();
+      };
+
+      $("btnFind").onclick = async () => {
+        try {
+          const key = adminKey();
+          const email = $("email").value.trim().toLowerCase();
+
+          if (!key) return out("❌ Paste ADMIN_API_KEY first.");
+          if (!email) return out("❌ Enter a user email.");
+
+          const r = await fetch(`/admin/users?email=${encodeURIComponent(email)}`, {
+            headers: { "x-admin-key": key },
+          });
+
+          const j = await r.json().catch(() => ({}));
+          out(j);
+
+          if (!r.ok) throw new Error(j?.error ?? `HTTP ${r.status}`);
+
+          if (j.user?.id) {
+            $("userId").value = j.user.id;
+          } else {
+            out("⚠️ User not found. Check email or create account first.");
+          }
+        } catch (e) {
+          out(String(e?.message ?? e));
+        }
+      };
+
+      $("btnCreate").onclick = async () => {
+        try {
+          const key = adminKey();
+          if (!key) return out("❌ Paste ADMIN_API_KEY first.");
+
+          const userId = Number($("userId").value);
+          const title = $("title").value.trim();
+          const zoomUrl = $("zoomUrl").value.trim();
+          const dateStr = $("date").value;
+          const timeStr = $("time").value;
+          const endTimeStr = $("endTime").value;
+
+          if (!userId) return out("❌ Missing userId. Click 'Find user' first (or type it).");
+          if (!title) return out("❌ Title is required.");
+          if (!zoomUrl) return out("❌ Zoom URL is required.");
+          if (!dateStr || !timeStr) return out("❌ Date and start time are required.");
+
+          const start = parseDateTime(dateStr, timeStr);
+          let end;
+          if (endTimeStr) end = parseDateTime(dateStr, endTimeStr);
+          else end = new Date(start.getTime() + getSelectedDuration() * 60 * 1000);
+
+          if (!(end > start)) return out("❌ End must be after start.");
+
+          const body = {
+            userId,
+            title,
+            start: start.toISOString(),
+            end: end.toISOString(),
+            zoomUrl,
+          };
+
+          const r = await fetch(`/meetings`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "x-admin-key": key,
+            },
+            body: JSON.stringify(body),
+          });
+
+          const j = await r.json().catch(() => ({}));
+          out(j);
+
+          if (!r.ok) throw new Error(j?.error ?? `HTTP ${r.status}`);
+
+          out({ ok: true, created: j.meeting ?? j });
+
+        } catch (e) {
+          out(String(e?.message ?? e));
+        }
+      };
+
+      initDefaults();
+      updateIsoPreview();
+    </script>
   </body>
 </html>
