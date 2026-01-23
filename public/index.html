@@ -2,265 +2,244 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Admin · Meetings</title>
+    <title>Admin • Meetings</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
     <style>
       :root{
-        --bg:#0b1020;
-        --panel:#0f162b;
-        --card:rgba(255,255,255,.06);
-        --line:rgba(255,255,255,.10);
-        --text:#eef2ff;
-        --muted:rgba(238,242,255,.65);
-        --focus:rgba(99,102,241,.35);
+        --bg:#f6f8fb;
+        --card:#ffffff;
+        --text:#0f172a;
+        --muted:#64748b;
+        --line:#e5e7eb;
+        --soft:#f1f5f9;
 
-        --primary:#6366f1;
-        --good:#22c55e;
-        --bad:#ef4444;
-        --warn:#f59e0b;
+        --primary:#2563eb;
+        --primarySoft:#eff6ff;
 
-        --radius:16px;
-        --shadow: 0 18px 60px rgba(0,0,0,.45);
+        --danger:#dc2626;
+        --dangerSoft:#fef2f2;
+
+        --radius:14px;
       }
 
-      *{box-sizing:border-box}
-      html,body{height:100%}
+      *{ box-sizing:border-box; }
+      html,body{ height:100%; }
       body{
         margin:0;
+        background:var(--bg);
         color:var(--text);
-        background:
-          radial-gradient(900px 600px at 15% 10%, rgba(99,102,241,.22), transparent 55%),
-          radial-gradient(800px 600px at 85% 25%, rgba(34,197,94,.10), transparent 60%),
-          radial-gradient(900px 700px at 55% 95%, rgba(239,68,68,.10), transparent 55%),
-          var(--bg);
-        font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, "Noto Sans", "Apple Color Emoji","Segoe UI Emoji";
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
       }
 
-      .wrap{max-width:1100px;margin:0 auto;padding:18px 16px 36px}
+      .wrap{
+        max-width: 980px;
+        margin: 28px auto;
+        padding: 0 16px 40px;
+      }
+
       .topbar{
-        display:flex; align-items:center; justify-content:space-between; gap:12px;
-        padding: 14px 16px;
-        border:1px solid var(--line);
-        background: rgba(255,255,255,.04);
-        border-radius: var(--radius);
-        box-shadow: var(--shadow);
+        display:flex;
+        align-items:flex-start;
+        justify-content:space-between;
+        gap:12px;
         margin-bottom: 14px;
       }
-      .brand{
-        display:flex; align-items:center; gap:10px;
-        font-weight:800; letter-spacing:.2px;
+
+      .title{
+        font-size:18px;
+        font-weight:800;
+        letter-spacing:-0.2px;
       }
-      .logo{
-        width:10px;height:10px;border-radius:999px;
-        background: rgba(99,102,241,.95);
-        box-shadow: 0 0 0 5px rgba(99,102,241,.18);
+      .subtitle{
+        margin-top:6px;
+        font-size:13px;
+        color:var(--muted);
+        font-weight:600;
       }
-      .right{
-        display:flex; align-items:center; gap:10px; flex-wrap:wrap; justify-content:flex-end;
-      }
-      .pill{
-        display:inline-flex; align-items:center; gap:8px;
-        padding: 8px 10px;
-        border-radius:999px;
+
+      .badge{
+        display:inline-flex;
+        align-items:center;
+        gap:8px;
+        padding:10px 12px;
         border:1px solid var(--line);
-        background: rgba(255,255,255,.04);
-        color: var(--muted);
+        border-radius:999px;
+        background:var(--card);
+        color:var(--muted);
         font-size:12px;
-        font-weight:650;
+        font-weight:700;
         white-space:nowrap;
       }
-      .pill strong{color:var(--text); font-weight:750}
-      .stateDot{
-        width:8px;height:8px;border-radius:999px;background:rgba(238,242,255,.25);
+      .badge.ok{
+        border-color: rgba(37,99,235,0.25);
+        background: var(--primarySoft);
+        color: #1d4ed8;
       }
-      .stateDot.ok{background: rgba(34,197,94,.95); box-shadow: 0 0 0 4px rgba(34,197,94,.18)}
-      .stateDot.bad{background: rgba(239,68,68,.95); box-shadow: 0 0 0 4px rgba(239,68,68,.18)}
+      .badge.bad{
+        border-color: rgba(220,38,38,0.20);
+        background: var(--dangerSoft);
+        color: var(--danger);
+      }
 
-      .grid{display:grid; grid-template-columns: 1.1fr .9fr; gap:14px}
-      @media (max-width: 980px){ .grid{grid-template-columns:1fr} }
+      .grid{
+        display:grid;
+        grid-template-columns: 1.15fr 0.85fr;
+        gap:14px;
+      }
+      @media (max-width: 940px){
+        .grid{ grid-template-columns: 1fr; }
+      }
 
       .card{
+        background:var(--card);
         border:1px solid var(--line);
-        background: linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.04));
         border-radius: var(--radius);
-        box-shadow: var(--shadow);
-        padding: 14px;
+        padding: 16px;
       }
-      .cardHead{
-        display:flex; align-items:center; justify-content:space-between; gap:10px;
-        padding: 2px 2px 10px;
+
+      .cardHeader{
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        gap:12px;
+        margin-bottom: 12px;
       }
-      .cardHead h2{
+
+      h3{
         margin:0;
-        font-size:12px;
+        font-size:13px;
         font-weight:800;
-        letter-spacing:.22em;
-        color: var(--muted);
+        color:var(--text);
+        letter-spacing:0.2px;
+        text-transform: uppercase;
       }
-      .divider{height:1px;background:var(--line); margin: 12px -14px}
+
+      .divider{
+        height:1px;
+        background:var(--line);
+        margin: 14px 0;
+      }
 
       label{
         display:block;
-        font-size:12px;
-        color: var(--muted);
-        font-weight:650;
         margin: 10px 0 6px;
+        font-size:12px;
+        font-weight:700;
+        color: var(--muted);
       }
+
       input{
         width:100%;
         height:44px;
+        padding: 10px 12px;
         border-radius: 12px;
         border:1px solid var(--line);
-        background: rgba(10,16,34,.55);
+        background:#fff;
         color: var(--text);
-        padding: 10px 12px;
-        outline:none;
         font-size:14px;
-        font-weight:650;
+        font-weight:600;
+        outline:none;
       }
-      input::placeholder{color: rgba(238,242,255,.35)}
+      input::placeholder{ color:#94a3b8; font-weight:600; }
       input:focus{
-        border-color: rgba(99,102,241,.55);
-        box-shadow: 0 0 0 4px var(--focus);
+        border-color: rgba(37,99,235,0.45);
+        box-shadow: 0 0 0 4px rgba(37,99,235,0.10);
       }
 
-      .row{display:flex; gap:10px}
-      .row > * {flex:1}
-      .row.tight{gap:8px}
+      .row{
+        display:flex;
+        gap:12px;
+      }
+      .row > *{ flex:1; }
 
-      .btn{
+      .actions{
+        display:flex;
+        gap:10px;
+        margin-top: 14px;
+      }
+
+      button{
         height:44px;
         padding: 0 14px;
         border-radius: 12px;
         border:1px solid var(--line);
-        background: rgba(255,255,255,.05);
+        background: #fff;
         color: var(--text);
         font-size:13px;
-        font-weight:750;
+        font-weight:800;
         cursor:pointer;
-        transition: transform .05s ease, background .12s ease, border-color .12s ease;
       }
-      .btn:hover{background: rgba(255,255,255,.08)}
-      .btn:active{transform: translateY(1px)}
-      .btn.primary{
-        background: rgba(99,102,241,.22);
-        border-color: rgba(99,102,241,.45);
+      button:hover{ background: var(--soft); }
+
+      .btnPrimary{
+        border-color: rgba(37,99,235,0.25);
+        background: var(--primary);
+        color:#fff;
       }
-      .btn.primary:hover{background: rgba(99,102,241,.30)}
-      .btn.danger{
-        background: rgba(239,68,68,.16);
-        border-color: rgba(239,68,68,.35);
-      }
-      .btn.danger:hover{background: rgba(239,68,68,.22)}
-      .btn.ghost{
-        background: rgba(255,255,255,.04);
+      .btnPrimary:hover{
+        background: #1d4ed8;
       }
 
-      .actions{display:flex; gap:10px; margin-top: 12px}
-      .actions .btn{flex:1}
-
-      .miniRow{
-        display:flex; align-items:center; justify-content:space-between; gap:10px;
-        margin-top: 8px;
+      .btnGhost{
+        background:#fff;
       }
-      .toggle{
-        display:flex; align-items:center; gap:8px;
-        color: var(--muted);
+
+      .btnDanger{
+        border-color: rgba(220,38,38,0.20);
+        background: var(--dangerSoft);
+        color: var(--danger);
+      }
+      .btnDanger:hover{
+        background: #fee2e2;
+      }
+
+      .muted{
+        color:var(--muted);
         font-size:12px;
-        font-weight:650;
-        user-select:none;
+        font-weight:700;
       }
-      .toggle input{width:auto;height:auto;margin:0}
 
-      .kv{
-        display:flex; flex-wrap:wrap; gap:8px;
-        margin-top: 10px;
+      .mono{
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
       }
-      .chip{
-        display:inline-flex; align-items:center; gap:8px;
-        padding: 8px 10px;
-        border-radius: 999px;
-        border:1px solid var(--line);
-        background: rgba(255,255,255,.04);
-        color: var(--muted);
-        font-size:12px;
-        font-weight:650;
-        white-space:nowrap;
-      }
-      .chip b{color:var(--text); font-weight:750}
-      .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;}
 
-      .log{
-        height: 520px;
+      .out{
+        height: 420px;
         overflow:auto;
-        border:1px solid var(--line);
-        background: rgba(0,0,0,.15);
-        border-radius: 12px;
         padding: 12px;
+        border-radius: 12px;
+        border:1px solid var(--line);
+        background: #fbfcfe;
         white-space: pre-wrap;
         word-break: break-word;
-        color: rgba(238,242,255,.82);
         font-size: 12px;
         line-height: 1.45;
       }
 
-      .toast{
-        position: fixed;
-        right: 16px;
-        bottom: 16px;
-        display:flex;
-        flex-direction:column;
-        gap:10px;
-        z-index: 50;
-        pointer-events:none;
-      }
-      .toastItem{
-        pointer-events:auto;
-        min-width: 260px;
-        max-width: 360px;
-        border:1px solid var(--line);
-        border-radius: 14px;
-        background: rgba(15,22,43,.92);
-        box-shadow: var(--shadow);
-        padding: 10px 12px;
-        display:flex;
-        gap:10px;
-        align-items:flex-start;
-      }
-      .tIcon{
-        width: 22px;
-        height: 22px;
-        border-radius: 999px;
+      .preview{
         display:flex;
         align-items:center;
-        justify-content:center;
-        flex: 0 0 auto;
+        justify-content:space-between;
+        gap:12px;
+        margin-top: 12px;
+        padding: 10px 12px;
+        border-radius: 12px;
         border:1px solid var(--line);
-        background: rgba(255,255,255,.05);
-        font-weight:900;
+        background: #fbfcfe;
       }
-      .tIcon.ok{border-color: rgba(34,197,94,.35); background: rgba(34,197,94,.14)}
-      .tIcon.bad{border-color: rgba(239,68,68,.35); background: rgba(239,68,68,.14)}
-      .tIcon.warn{border-color: rgba(245,158,11,.35); background: rgba(245,158,11,.14)}
-      .tText{
-        font-size:12.5px;
-        font-weight:650;
-        color: rgba(238,242,255,.9);
-        line-height:1.35;
+      .preview strong{
+        font-size:12px;
+        text-transform: uppercase;
+        letter-spacing: 0.2px;
       }
-      .tText small{display:block; color: var(--muted); font-weight:650; margin-top:2px}
-      .tClose{
-        margin-left:auto;
-        pointer-events:auto;
-        background: transparent;
-        border: none;
-        color: rgba(238,242,255,.65);
-        cursor:pointer;
-        font-size: 16px;
-        line-height: 1;
-        padding: 0 2px;
+      .previewText{
+        font-size:12px;
+        font-weight:700;
+        color: var(--muted);
+        text-align:right;
       }
     </style>
   </head>
@@ -268,189 +247,126 @@
   <body>
     <div class="wrap">
       <div class="topbar">
-        <div class="brand">
-          <span class="logo"></span>
-          <span>Meetings Admin</span>
+        <div>
+          <div class="title">Admin</div>
+          <div class="subtitle">Create Zoom meetings for users. Date/time uses your device timezone (Boston / New York).</div>
         </div>
-        <div class="right">
-          <div class="pill" title="Browser time zone">
-            <strong id="tz">TZ</strong>
-          </div>
-          <div class="pill" title="Admin key status">
-            <span class="stateDot bad" id="keyDot"></span>
-            <span id="keyText">Key: not set</span>
-          </div>
-        </div>
+        <div class="badge bad" id="keyBadge">Admin key: not set</div>
       </div>
 
       <div class="grid">
-        <!-- LEFT -->
-        <section class="card">
-          <div class="cardHead">
-            <h2>MEETING</h2>
-            <button class="btn danger" id="btnReset" type="button">Reset</button>
+        <!-- FORM -->
+        <div class="card">
+          <div class="cardHeader">
+            <h3>Create meeting</h3>
+            <button class="btnDanger" id="btnReset" type="button">Reset</button>
           </div>
 
-          <label for="adminKey">Admin key</label>
-          <input id="adminKey" type="password" placeholder="ADMIN_API_KEY" autocomplete="off" />
-
-          <div class="miniRow">
-            <label class="toggle" style="margin:0;">
-              <input id="rememberKey" type="checkbox" />
-              Remember
-            </label>
-            <button class="btn ghost" id="btnClearKey" type="button" style="height:36px;border-radius:10px;padding:0 12px;">Clear</button>
-          </div>
+          <label>Admin API Key</label>
+          <input id="adminKey" placeholder="ADMIN_API_KEY" autocomplete="off" />
 
           <div class="divider"></div>
 
-          <div class="row tight">
-            <div style="flex:1.2">
-              <label for="email">User email</label>
-              <input id="email" type="email" placeholder="user@company.com" autocomplete="off" />
-            </div>
-            <div style="display:flex; align-items:flex-end;">
-              <button class="btn" id="btnFind" type="button" style="width:100%;">Find</button>
-            </div>
+          <label>User email</label>
+          <div class="row">
+            <input id="email" placeholder="user@email.com" autocomplete="off" />
+            <button class="btnGhost" id="btnFind" type="button">Find</button>
           </div>
 
-          <div class="row tight">
-            <div>
-              <label for="userId">User ID</label>
-              <input id="userId" inputmode="numeric" placeholder="—" />
-            </div>
-            <div>
-              <label for="title">Title</label>
-              <input id="title" placeholder="Weekly Check-in" />
-            </div>
-          </div>
+          <label>User ID</label>
+          <input id="userId" placeholder="Auto-filled" inputmode="numeric" />
 
-          <label for="zoomUrl">Zoom URL</label>
-          <input id="zoomUrl" type="url" placeholder="https://zoom.us/j/..." />
+          <div class="divider"></div>
 
-          <div class="row tight">
+          <label>Title</label>
+          <input id="title" placeholder="Weekly Check-in" />
+
+          <label>Zoom URL</label>
+          <input id="zoomUrl" placeholder="https://zoom.us/j/..." />
+
+          <div class="row">
             <div>
-              <label for="date">Date</label>
+              <label>Date</label>
               <input id="date" type="date" />
             </div>
             <div>
-              <label for="start">Start</label>
-              <input id="start" type="time" step="60" />
+              <label>Start</label>
+              <input id="start" type="time" />
             </div>
+          </div>
+
+          <div class="row">
             <div>
-              <label for="duration">Duration (min)</label>
+              <label>Duration (min)</label>
               <input id="duration" type="number" min="5" step="5" value="30" />
             </div>
             <div>
-              <label for="end">End</label>
-              <input id="end" type="time" step="60" placeholder="auto" />
+              <label>End (optional)</label>
+              <input id="end" type="time" />
             </div>
           </div>
 
-          <div class="kv" id="preview">
-            <span class="chip"><span>Local:</span> <b id="pLocal">—</b></span>
-            <span class="chip mono"><span>UTC:</span> <b id="pUtc">—</b></span>
+          <div class="preview">
+            <strong id="previewBadge">Preview</strong>
+            <div class="previewText mono" id="previewText">Start: -   End: -</div>
           </div>
 
           <div class="actions">
-            <button class="btn primary" id="btnCreate" type="button">Create</button>
-            <button class="btn" id="btnCopyPayload" type="button">Copy payload</button>
+            <button class="btnPrimary" id="btnCreate" type="button">Create</button>
           </div>
-        </section>
+        </div>
 
-        <!-- RIGHT -->
-        <section class="card">
-          <div class="cardHead">
-            <h2>LOG</h2>
-            <div class="pill mono" title="Endpoint">
-              <strong>POST</strong> /meetings
-            </div>
+        <!-- OUTPUT -->
+        <div class="card">
+          <div class="cardHeader">
+            <h3>Response</h3>
+            <div class="muted mono">POST /meetings</div>
           </div>
-          <div class="log mono" id="log">-</div>
-        </section>
+          <div class="out mono" id="out">-</div>
+        </div>
       </div>
     </div>
 
-    <div class="toast" id="toast"></div>
-
     <script>
       const $ = (id) => document.getElementById(id);
-      const logEl = $("log");
-      const toastEl = $("toast");
+      const outEl = $("out");
+      const keyBadge = $("keyBadge");
+      const previewBadge = $("previewBadge");
+      const previewText = $("previewText");
 
-      function log(x){
-        const s = typeof x === "string" ? x : JSON.stringify(x, null, 2);
-        logEl.textContent = s;
+      function out(x){
+        outEl.textContent = typeof x === "string" ? x : JSON.stringify(x, null, 2);
       }
 
-      function toast(type, title, detail){
-        const item = document.createElement("div");
-        item.className = "toastItem";
-
-        const icon = document.createElement("div");
-        icon.className = "tIcon " + (type || "");
-        icon.textContent = type === "ok" ? "✓" : type === "bad" ? "!" : "i";
-
-        const txt = document.createElement("div");
-        txt.className = "tText";
-        txt.innerHTML = `${escapeHtml(title)}${detail ? `<small>${escapeHtml(detail)}</small>` : ""}`;
-
-        const close = document.createElement("button");
-        close.className = "tClose";
-        close.type = "button";
-        close.textContent = "×";
-        close.onclick = () => item.remove();
-
-        item.appendChild(icon);
-        item.appendChild(txt);
-        item.appendChild(close);
-        toastEl.appendChild(item);
-
-        setTimeout(() => { if (item.isConnected) item.remove(); }, 5200);
+      function adminKey(){
+        return ($("adminKey").value || "").trim();
       }
 
-      function escapeHtml(s){
-        return String(s ?? "")
-          .replaceAll("&","&amp;")
-          .replaceAll("<","&lt;")
-          .replaceAll(">","&gt;")
-          .replaceAll('"',"&quot;")
-          .replaceAll("'","&#039;");
-      }
-
-      function adminKey(){ return ($("adminKey").value || "").trim(); }
-
-      function syncKeyUI(){
+      function syncKeyBadge(){
         const k = adminKey();
-        const dot = $("keyDot");
-        const txt = $("keyText");
         if (k.length >= 8){
-          dot.className = "stateDot ok";
-          txt.textContent = "Key: set";
+          keyBadge.className = "badge ok";
+          keyBadge.textContent = "Admin key: set";
         } else {
-          dot.className = "stateDot bad";
-          txt.textContent = "Key: not set";
+          keyBadge.className = "badge bad";
+          keyBadge.textContent = "Admin key: not set";
         }
       }
 
       function headers(){
         const k = adminKey();
-        if (!k) throw new Error("Missing admin key");
-        return { "x-admin-key": k, "Content-Type":"application/json" };
+        if (!k) throw new Error("Missing admin key.");
+        return { "x-admin-key": k };
       }
 
-      function parseLocal(dateStr, timeStr){
-        if (!dateStr || !timeStr) return null;
+      function parseLocalDateTime(dateStr, timeStr){
         const [y,m,d] = dateStr.split("-").map(Number);
         const [hh,mm] = timeStr.split(":").map(Number);
         const dt = new Date();
         dt.setFullYear(y, m-1, d);
         dt.setHours(hh, mm, 0, 0);
-        if (isNaN(dt.getTime())) return null;
         return dt;
       }
-
-      function pad2(n){ return String(n).padStart(2,"0"); }
 
       function computeStartEnd(){
         const dateStr = $("date").value;
@@ -460,194 +376,126 @@
 
         if (!dateStr || !startStr) return null;
 
-        const start = parseLocal(dateStr, startStr);
-        if (!start) return null;
+        const start = parseLocalDateTime(dateStr, startStr);
+        let end;
 
-        let end = null;
         if (endStr){
-          end = parseLocal(dateStr, endStr);
+          end = parseLocalDateTime(dateStr, endStr);
         } else {
           end = new Date(start.getTime() + Math.max(5, dur) * 60 * 1000);
         }
 
-        return { start, end, bad: !(end > start) };
-      }
-
-      function fmtLocal(d){
-        return new Intl.DateTimeFormat(undefined, {
-          year:"numeric", month:"short", day:"2-digit",
-          hour:"2-digit", minute:"2-digit"
-        }).format(d);
+        if (!(end > start)) return { bad:true, start, end };
+        return { start, end };
       }
 
       function updatePreview(){
         const r = computeStartEnd();
         if (!r){
-          $("pLocal").textContent = "—";
-          $("pUtc").textContent = "—";
+          previewBadge.textContent = "Preview";
+          previewBadge.style.color = "#64748b";
+          previewText.textContent = "Start: -   End: -";
           return;
         }
-        $("pLocal").textContent = r.bad ? "Invalid (end ≤ start)" : `${fmtLocal(r.start)} → ${fmtLocal(r.end)}`;
-        $("pUtc").textContent = r.bad ? "—" : `${r.start.toISOString()} → ${r.end.toISOString()}`;
+        previewBadge.textContent = r.bad ? "Check" : "Ready";
+        previewBadge.style.color = r.bad ? "#dc2626" : "#16a34a";
+        previewText.textContent = `Start: ${r.start.toISOString()}   End: ${r.end.toISOString()}`;
       }
 
       function initDefaults(){
         const now = new Date();
         const yyyy = now.getFullYear();
-        const mm = pad2(now.getMonth()+1);
-        const dd = pad2(now.getDate());
+        const mm = String(now.getMonth()+1).padStart(2,"0");
+        const dd = String(now.getDate()).padStart(2,"0");
         $("date").value = `${yyyy}-${mm}-${dd}`;
 
         const rounded = new Date(now);
         rounded.setMinutes(Math.ceil(rounded.getMinutes() / 15) * 15);
         rounded.setSeconds(0,0);
-        $("start").value = `${pad2(rounded.getHours())}:${pad2(rounded.getMinutes())}`;
+        const hh = String(rounded.getHours()).padStart(2,"0");
+        const mi = String(rounded.getMinutes()).padStart(2,"0");
+        $("start").value = `${hh}:${mi}`;
 
         $("duration").value = "30";
         $("end").value = "";
-        updatePreview();
       }
-
-      function buildPayload(){
-        const userId = Number(($("userId").value || "").trim());
-        const title = ($("title").value || "").trim();
-        const zoomUrl = ($("zoomUrl").value || "").trim();
-
-        const r = computeStartEnd();
-        if (!r) throw new Error("Pick date and start time");
-        if (r.bad) throw new Error("End must be after start");
-        if (!userId) throw new Error("Missing userId");
-        if (!title) throw new Error("Missing title");
-        if (!zoomUrl) throw new Error("Missing Zoom URL");
-
-        return {
-          userId,
-          title,
-          start: r.start.toISOString(),
-          end: r.end.toISOString(),
-          zoomUrl,
-        };
-      }
-
-      async function safeJson(resp){
-        try { return await resp.json(); } catch { return {}; }
-      }
-
-      // TZ badge
-      $("tz").textContent = Intl.DateTimeFormat().resolvedOptions().timeZone || "Local";
-
-      // Remember key
-      const saved = localStorage.getItem("adminKey") || "";
-      if (saved){
-        $("adminKey").value = saved;
-        $("rememberKey").checked = true;
-      }
-
-      $("rememberKey").addEventListener("change", () => {
-        if ($("rememberKey").checked){
-          localStorage.setItem("adminKey", adminKey());
-          toast("ok","Saved","Admin key stored on this device");
-        } else {
-          localStorage.removeItem("adminKey");
-          toast("warn","Removed","Admin key no longer stored");
-        }
-      });
 
       $("adminKey").addEventListener("input", () => {
-        syncKeyUI();
-        if ($("rememberKey").checked) localStorage.setItem("adminKey", adminKey());
+        syncKeyBadge();
       });
 
-      $("btnClearKey").addEventListener("click", () => {
-        $("adminKey").value = "";
-        localStorage.removeItem("adminKey");
-        $("rememberKey").checked = false;
-        syncKeyUI();
-        toast("warn","Cleared","Admin key cleared");
-      });
-
-      // Preview updates
-      ["date","start","end","duration"].forEach(id => {
+      ["date","start","end","duration"].forEach((id)=>{
         $(id).addEventListener("input", updatePreview);
         $(id).addEventListener("change", updatePreview);
       });
 
-      // Reset
-      $("btnReset").addEventListener("click", () => {
+      $("btnReset").onclick = () => {
+        $("adminKey").value = "";
         $("email").value = "";
         $("userId").value = "";
         $("title").value = "";
         $("zoomUrl").value = "";
         initDefaults();
-        log("-");
-        toast("warn","Reset","Form cleared");
-      });
+        out("-");
+        syncKeyBadge();
+        updatePreview();
+      };
 
-      // Find user
-      $("btnFind").addEventListener("click", async () => {
+      $("btnFind").onclick = async () => {
         try{
-          const email = ($("email").value || "").trim().toLowerCase();
-          if (!email) throw new Error("Enter email");
-          if (!adminKey()) throw new Error("Missing admin key");
+          const email = $("email").value.trim().toLowerCase();
+          if (!email) return out("Enter an email.");
 
-          const resp = await fetch(`/admin/users?email=${encodeURIComponent(email)}`, {
-            headers: { "x-admin-key": adminKey() }
-          });
-          const json = await safeJson(resp);
-          log(json);
+          const r = await fetch(`/admin/users?email=${encodeURIComponent(email)}`, { headers: headers() });
+          const j = await r.json().catch(()=> ({}));
 
-          if (!resp.ok) throw new Error(json?.error || `HTTP ${resp.status}`);
-          if (!json.user?.id){
-            $("userId").value = "";
-            toast("warn","Not found", email);
-            return;
-          }
+          out(j);
+          if (!r.ok) throw new Error(j?.error ?? `HTTP ${r.status}`);
 
-          $("userId").value = String(json.user.id);
-          toast("ok","User loaded", `${json.user.email} · id=${json.user.id}`);
+          $("userId").value = j.user?.id ? String(j.user.id) : "";
         } catch(e){
-          toast("bad","Error", String(e?.message || e));
+          out(String(e?.message ?? e));
         }
-      });
+      };
 
-      // Create
-      $("btnCreate").addEventListener("click", async () => {
+      $("btnCreate").onclick = async () => {
         try{
-          const payload = buildPayload();
+          const userId = Number($("userId").value);
+          const title = $("title").value.trim();
+          const zoomUrl = $("zoomUrl").value.trim();
+
+          const r = computeStartEnd();
+          if (!r) return out("Pick a date and start time.");
+          if (r.bad) return out("End must be after start.");
+          if (!userId) return out("Missing userId (use Find).");
+          if (!title) return out("Missing title.");
+          if (!zoomUrl) return out("Missing Zoom URL.");
+
+          const body = {
+            userId,
+            title,
+            start: r.start.toISOString(),
+            end: r.end.toISOString(),
+            zoomUrl,
+          };
 
           const resp = await fetch(`/meetings`, {
             method: "POST",
-            headers: headers(),
-            body: JSON.stringify(payload),
+            headers: { "Content-Type":"application/json", ...headers() },
+            body: JSON.stringify(body),
           });
 
-          const json = await safeJson(resp);
-          log(json);
+          const json = await resp.json().catch(()=> ({}));
+          out(json);
+          if (!resp.ok) throw new Error(json?.error ?? `HTTP ${resp.status}`);
 
-          if (!resp.ok) throw new Error(json?.error || `HTTP ${resp.status}`);
-
-          toast("ok","Created", `Meeting id=${json?.meeting?.id ?? "—"}`);
-          // optional: auto-advance start by duration for rapid entry
-          // $("end").value = "";
         } catch(e){
-          toast("bad","Error", String(e?.message || e));
+          out(String(e?.message ?? e));
         }
-      });
+      };
 
-      // Copy payload
-      $("btnCopyPayload").addEventListener("click", async () => {
-        try{
-          const payload = buildPayload();
-          await navigator.clipboard.writeText(JSON.stringify(payload, null, 2));
-          toast("ok","Copied","Payload copied to clipboard");
-        } catch(e){
-          toast("bad","Error", String(e?.message || e));
-        }
-      });
-
-      // Init
       initDefaults();
-      syncKeyUI();
+      syncKeyBadge();
       updatePreview();
     </script>
   </body>
