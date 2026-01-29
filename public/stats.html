@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="it">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -37,29 +37,29 @@
 
 <div class="container">
     <div class="header-row">
-        <h1>📊 Monitoraggio Utenti</h1>
+        <h1>📊 Users Data</h1>
         <div style="display:flex; gap:10px;">
-            <button class="btn-green" onclick="downloadExcel()">📥 Scarica Excel (.csv)</button>
-            <button class="btn-blue" onclick="loadStats()">🔄 Aggiorna</button>
+            <button class="btn-green" onclick="downloadExcel()">Download data (.csv)</button>
+            <button class="btn-blue" onclick="loadStats()">Refresh</button>
         </div>
     </div>
 
     <div class="auth-bar">
         <input type="password" id="apiKey" placeholder="Inserisci ADMIN API KEY">
-        <button class="btn-blue" onclick="saveKey()">Salva Key</button>
+        <button class="btn-blue" onclick="saveKey()">Key Check</button>
     </div>
 
-    <div id="loading" style="display:none; color:#666;">Caricamento dati...</div>
+    <div id="loading" style="display:none; color:#666;">Loading...</div>
 
     <table id="statsTable">
         <thead>
             <tr>
                 <th>Data</th>
-                <th>Utente</th>
-                <th>Calorie</th>
+                <th>User</th>
+                <th>Calories</th>
                 <th>Macros (P/C/F)</th>
-                <th>Acqua</th>
-                <th>Ultimo Aggiornamento</th>
+                <th>Water</th>
+                <th>Last Update</th>
             </tr>
         </thead>
         <tbody>
@@ -117,7 +117,6 @@
         }
     }
 
-    // ✅ NUOVA FUNZIONE PER SCARICARE EXCEL
     async function downloadExcel() {
         const key = document.getElementById('apiKey').value;
         if(!key) return alert("Inserisci la API KEY per scaricare");
