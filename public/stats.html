@@ -10,13 +10,19 @@
         
         h1 { margin-top: 0; color: #111827; }
         
-        /* Auth Bar */
+        .header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         .auth-bar { display: flex; gap: 10px; margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #eee; }
+        
         input { padding: 8px; border: 1px solid #ccc; border-radius: 4px; flex-grow: 1; }
-        button { padding: 8px 16px; background: #2563eb; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
-        button:hover { background: #1d4ed8; }
+        
+        /* Bottoni */
+        button { padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; color: white; transition: opacity 0.2s; }
+        button:hover { opacity: 0.9; }
+        
+        .btn-blue { background: #2563eb; }
+        .btn-green { background: #16a34a; } /* Verde Excel */
 
-        /* Table */
+        /* Tabella */
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th, td { padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; }
         th { background-color: #f9fafb; font-weight: 600; color: #374151; }
@@ -30,14 +36,17 @@
 <body>
 
 <div class="container">
-    <div style="display:flex; justify-content:space-between; align-items:center;">
+    <div class="header-row">
         <h1>📊 Monitoraggio Utenti</h1>
-        <button onclick="loadStats()">🔄 Aggiorna</button>
+        <div style="display:flex; gap:10px;">
+            <button class="btn-green" onclick="downloadExcel()">📥 Scarica Excel (.csv)</button>
+            <button class="btn-blue" onclick="loadStats()">🔄 Aggiorna</button>
+        </div>
     </div>
 
     <div class="auth-bar">
         <input type="password" id="apiKey" placeholder="Inserisci ADMIN API KEY">
-        <button onclick="saveKey()">Salva Key</button>
+        <button class="btn-blue" onclick="saveKey()">Salva Key</button>
     </div>
 
     <div id="loading" style="display:none; color:#666;">Caricamento dati...</div>
@@ -59,7 +68,6 @@
 </div>
 
 <script>
-    // Recupera la chiave salvata
     const savedKey = localStorage.getItem('adminKey');
     if(savedKey) document.getElementById('apiKey').value = savedKey;
     if(savedKey) loadStats();
@@ -87,7 +95,7 @@
             const data = await res.json();
 
             data.stats.forEach(row => {
-                const dateClean = row.date.split('T')[0]; // Prendi solo YYYY-MM-DD
+                const dateClean = row.date.split('T')[0]; 
                 const timeClean = new Date(row.updated_at).toLocaleTimeString('it-IT', {hour:'2-digit', minute:'2-digit'});
 
                 const tr = document.createElement('tr');
@@ -106,6 +114,36 @@
             alert("Errore: " + e.message);
         } finally {
             document.getElementById('loading').style.display = 'none';
+        }
+    }
+
+    // ✅ NUOVA FUNZIONE PER SCARICARE EXCEL
+    async function downloadExcel() {
+        const key = document.getElementById('apiKey').value;
+        if(!key) return alert("Inserisci la API KEY per scaricare");
+
+        try {
+            // Facciamo una fetch per poter passare l'header x-admin-key
+            const res = await fetch('/admin/export-csv', {
+                headers: { 'x-admin-key': key }
+            });
+
+            if(res.status !== 200) throw new Error("Errore download");
+
+            // Convertiamo la risposta in un "Blob" (file virtuale)
+            const blob = await res.blob();
+            
+            // Creiamo un link invisibile e lo clicchiamo
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `report_nutrizione_${new Date().toISOString().split('T')[0]}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove(); // Pulizia
+
+        } catch (e) {
+            alert("Impossibile scaricare il file: " + e.message);
         }
     }
 </script>
