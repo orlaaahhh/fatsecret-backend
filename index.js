@@ -265,7 +265,38 @@ app.post("/auth/login", async (req, res) => {
 });
 
 app.get("/me", authMiddleware, (req, res) => res.json({ user: req.user }));
+// DASHBOARD: Scarica Excel/CSV
+app.get("/admin/export-csv", adminKeyMiddleware, async (req, res) => {
+  try {
+    // 1. Scarichiamo TUTTI i dati storici
+    const r = await pool.query(`
+      select u.email, s.date, s.calories, s.protein, s.carbs, s.fat, s.water_cups
+      from user_daily_stats s
+      join users u on u.id = s.user_id
+      order by s.date desc
+    `);
 
+    // 2. Creiamo l'intestazione del CSV
+    let csv = "Data,Email,Calorie (kcal),Proteine (g),Carboidrati (g),Grassi (g),Acqua (cups)\n";
+
+    // 3. Aggiungiamo le righe
+    r.rows.forEach((row) => {
+      // Formattiamo la data in YYYY-MM-DD per evitare problemi con Excel
+      const dateStr = new Date(row.date).toISOString().split('T')[0];
+      
+      csv += `${dateStr},${row.email},${row.calories},${row.protein},${row.carbs},${row.fat},${row.water_cups}\n`;
+    });
+
+    // 4. Inviamo il file
+    res.header("Content-Type", "text/csv");
+    res.attachment("report_nutrizione.csv");
+    return res.send(csv);
+
+  } catch (e) {
+    console.error(e);
+    return res.status(500).send("Errore generazione CSV");
+  }
+});
 // ===========================
 // ✅ TRACKING / STATS (NUOVO)
 // ===========================
@@ -422,3 +453,4 @@ app.get("/fatsecret/food/:id", authMiddleware, async (req, res) => {
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Listening on ${PORT}`);
 });
+
