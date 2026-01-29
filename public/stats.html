@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Nutrition Stats</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #f3f4f6; padding: 20px; }
+        .container { max-width: 1000px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        
+        h1 { margin-top: 0; color: #111827; }
+        
+        /* Auth Bar */
+        .auth-bar { display: flex; gap: 10px; margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #eee; }
+        input { padding: 8px; border: 1px solid #ccc; border-radius: 4px; flex-grow: 1; }
+        button { padding: 8px 16px; background: #2563eb; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        button:hover { background: #1d4ed8; }
+
+        /* Table */
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; }
+        th { background-color: #f9fafb; font-weight: 600; color: #374151; }
+        tr:hover { background-color: #f9fafb; }
+        
+        .badge { padding: 4px 8px; border-radius: 12px; font-size: 0.85rem; font-weight: 500; }
+        .cal-badge { background: #fee2e2; color: #991b1b; }
+        .water-badge { background: #dbeafe; color: #1e40af; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h1>📊 Monitoraggio Utenti</h1>
+        <button onclick="loadStats()">🔄 Aggiorna</button>
+    </div>
+
+    <div class="auth-bar">
+        <input type="password" id="apiKey" placeholder="Inserisci ADMIN API KEY">
+        <button onclick="saveKey()">Salva Key</button>
+    </div>
+
+    <div id="loading" style="display:none; color:#666;">Caricamento dati...</div>
+
+    <table id="statsTable">
+        <thead>
+            <tr>
+                <th>Data</th>
+                <th>Utente</th>
+                <th>Calorie</th>
+                <th>Macros (P/C/F)</th>
+                <th>Acqua</th>
+                <th>Ultimo Aggiornamento</th>
+            </tr>
+        </thead>
+        <tbody>
+            </tbody>
+    </table>
+</div>
+
+<script>
+    // Recupera la chiave salvata
+    const savedKey = localStorage.getItem('adminKey');
+    if(savedKey) document.getElementById('apiKey').value = savedKey;
+    if(savedKey) loadStats();
+
+    function saveKey() {
+        const key = document.getElementById('apiKey').value;
+        localStorage.setItem('adminKey', key);
+        loadStats();
+    }
+
+    async function loadStats() {
+        const key = document.getElementById('apiKey').value;
+        if(!key) return alert("Inserisci la API KEY");
+
+        document.getElementById('loading').style.display = 'block';
+        const tbody = document.querySelector('#statsTable tbody');
+        tbody.innerHTML = '';
+
+        try {
+            const res = await fetch('/admin/stats-view', {
+                headers: { 'x-admin-key': key }
+            });
+
+            if(res.status === 401) throw new Error("Key non valida");
+            const data = await res.json();
+
+            data.stats.forEach(row => {
+                const dateClean = row.date.split('T')[0]; // Prendi solo YYYY-MM-DD
+                const timeClean = new Date(row.updated_at).toLocaleTimeString('it-IT', {hour:'2-digit', minute:'2-digit'});
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="font-weight:bold; color:#374151;">${dateClean}</td>
+                    <td>${row.email}</td>
+                    <td><span class="badge cal-badge">🔥 ${row.calories} kcal</span></td>
+                    <td>${row.protein}g / ${row.carbs}g / ${row.fat}g</td>
+                    <td><span class="badge water-badge">💧 ${row.water_cups} cups</span></td>
+                    <td style="color:#6b7280; font-size:0.9rem;">${timeClean}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+        } catch (e) {
+            alert("Errore: " + e.message);
+        } finally {
+            document.getElementById('loading').style.display = 'none';
+        }
+    }
+</script>
+
+</body>
+</html>
