@@ -1,502 +1,290 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <title>Admin • Meetings</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <title>Manage Meetings</title>
     <style>
-      :root{
-        --bg:#f6f8fb;
-        --card:#ffffff;
-        --text:#0f172a;
-        --muted:#64748b;
-        --line:#e5e7eb;
-        --soft:#f1f5f9;
+        body { 
+            font-family: 'JetBrains Mono', monospace; 
+            background: #f3f4f6; 
+            padding: 20px; 
+            color: #1f2937;
+            display: flex;
+            justify-content: center;
+        }
+        .container { 
+            width: 100%;
+            max-width: 700px;
+            background: white; 
+            padding: 30px; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08); 
+        }
+        
+        h1 { margin-top: 0; font-size: 1.4rem; margin-bottom: 25px; display:flex; justify-content:space-between; align-items:center; }
+        
+        /* Auth */
+        .auth-bar { display: flex; gap: 10px; margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px solid #e5e7eb; }
+        
+        label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 0.85rem; color: #4b5563; }
+        .hint { font-size: 0.75rem; color: #9ca3af; font-weight: 400; }
 
-        --primary:#2563eb;
-        --primarySoft:#eff6ff;
+        input, select { 
+            width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; 
+            font-family: inherit; box-sizing: border-box; background: #f9fafb; font-size: 0.9rem;
+        }
+        input:focus, select:focus { outline: 2px solid #2563eb; border-color: transparent; background: #fff; }
 
-        --danger:#dc2626;
-        --dangerSoft:#fef2f2;
+        /* Grid Layouts */
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px; }
+        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 15px; }
 
-        --radius:14px;
-      }
+        /* Buttons */
+        button { 
+            width: 100%; padding: 12px; border: none; border-radius: 6px; cursor: pointer; 
+            font-weight: bold; color: white; font-family: inherit; font-size: 0.9rem;
+        }
+        .btn-blue { background: #2563eb; margin-top: 20px; }
+        .btn-blue:hover { background: #1d4ed8; }
+        .btn-gray { background: #4b5563; width: auto; font-size: 0.8rem; padding: 8px 16px; } 
+        .btn-red { background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; width: auto; font-size: 0.7rem; padding: 4px 10px; }
 
-      *{ box-sizing:border-box; }
-      html,body{ height:100%; }
-      body{
-        margin:0;
-        background:var(--bg);
-        color:var(--text);
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, "Noto Sans", "Apple Color Emoji","Segoe UI Emoji";
-        -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale;
-      }
+        /* Preview Box */
+        .preview-box { 
+            background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 15px; 
+            margin-top: 20px; font-size: 0.85rem; color: #64748b;
+        }
+        .preview-header { font-weight: 700; color: #334155; margin-bottom: 5px; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.5px; }
 
-      .wrap{
-        max-width: 980px;
-        margin: 28px auto;
-        padding: 0 16px 40px;
-      }
+        /* Status Messages */
+        .msg { margin-top: 15px; padding: 10px; border-radius: 6px; text-align: center; font-size: 0.9rem; display: none; }
+        .msg.success { background: #dcfce7; color: #166534; display: block; }
+        .msg.error { background: #fee2e2; color: #991b1b; display: block; }
 
-      .topbar{
-        display:flex;
-        align-items:flex-start;
-        justify-content:space-between;
-        gap:12px;
-        margin-bottom: 14px;
-      }
-
-      .title{
-        font-size:18px;
-        font-weight:800;
-        letter-spacing:-0.2px;
-      }
-      .subtitle{
-        margin-top:6px;
-        font-size:13px;
-        color:var(--muted);
-        font-weight:600;
-      }
-
-      .badge{
-        display:inline-flex;
-        align-items:center;
-        gap:8px;
-        padding:10px 12px;
-        border:1px solid var(--line);
-        border-radius:999px;
-        background:var(--card);
-        color:var(--muted);
-        font-size:12px;
-        font-weight:700;
-        white-space:nowrap;
-      }
-      .badge.ok{
-        border-color: rgba(37,99,235,0.25);
-        background: var(--primarySoft);
-        color: #1d4ed8;
-      }
-      .badge.bad{
-        border-color: rgba(220,38,38,0.20);
-        background: var(--dangerSoft);
-        color: var(--danger);
-      }
-
-      .grid{
-        display:grid;
-        grid-template-columns: 1.15fr 0.85fr;
-        gap:14px;
-      }
-      @media (max-width: 940px){
-        .grid{ grid-template-columns: 1fr; }
-      }
-
-      .card{
-        background:var(--card);
-        border:1px solid var(--line);
-        border-radius: var(--radius);
-        padding: 16px;
-      }
-
-      .cardHeader{
-        display:flex;
-        align-items:center;
-        justify-content:space-between;
-        gap:12px;
-        margin-bottom: 12px;
-      }
-
-      h3{
-        margin:0;
-        font-size:13px;
-        font-weight:800;
-        color:var(--text);
-        letter-spacing:0.2px;
-        text-transform: uppercase;
-      }
-
-      .divider{
-        height:1px;
-        background:var(--line);
-        margin: 14px 0;
-      }
-
-      label{
-        display:block;
-        margin: 10px 0 6px;
-        font-size:12px;
-        font-weight:700;
-        color: var(--muted);
-      }
-
-      input{
-        width:100%;
-        height:44px;
-        padding: 10px 12px;
-        border-radius: 12px;
-        border:1px solid var(--line);
-        background:#fff;
-        color: var(--text);
-        font-size:14px;
-        font-weight:600;
-        outline:none;
-      }
-      input::placeholder{ color:#94a3b8; font-weight:600; }
-      input:focus{
-        border-color: rgba(37,99,235,0.45);
-        box-shadow: 0 0 0 4px rgba(37,99,235,0.10);
-      }
-
-      .row{
-        display:flex;
-        gap:12px;
-      }
-      .row > *{ flex:1; }
-
-      .actions{
-        display:flex;
-        gap:10px;
-        margin-top: 14px;
-      }
-
-      button{
-        height:44px;
-        padding: 0 14px;
-        border-radius: 12px;
-        border:1px solid var(--line);
-        background: #fff;
-        color: var(--text);
-        font-size:13px;
-        font-weight:800;
-        cursor:pointer;
-      }
-      button:hover{ background: var(--soft); }
-
-      .btnPrimary{
-        border-color: rgba(37,99,235,0.25);
-        background: var(--primary);
-        color:#fff;
-      }
-      .btnPrimary:hover{
-        background: #1d4ed8;
-      }
-
-      .btnGhost{
-        background:#fff;
-      }
-
-      .btnDanger{
-        border-color: rgba(220,38,38,0.20);
-        background: var(--dangerSoft);
-        color: var(--danger);
-      }
-      .btnDanger:hover{
-        background: #fee2e2;
-      }
-
-      .muted{
-        color:var(--muted);
-        font-size:12px;
-        font-weight:700;
-      }
-
-      .mono{
-        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-      }
-
-      .out{
-        height: 420px;
-        overflow:auto;
-        padding: 12px;
-        border-radius: 12px;
-        border:1px solid var(--line);
-        background: #fbfcfe;
-        white-space: pre-wrap;
-        word-break: break-word;
-        font-size: 12px;
-        line-height: 1.45;
-      }
-
-      .preview{
-        display:flex;
-        align-items:center;
-        justify-content:space-between;
-        gap:12px;
-        margin-top: 12px;
-        padding: 10px 12px;
-        border-radius: 12px;
-        border:1px solid var(--line);
-        background: #fbfcfe;
-      }
-      .preview strong{
-        font-size:12px;
-        text-transform: uppercase;
-        letter-spacing: 0.2px;
-      }
-      .previewText{
-        font-size:12px;
-        font-weight:700;
-        color: var(--muted);
-        text-align:right;
-      }
+        /* Badge */
+        .badge { padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; }
+        .badge.ok { background: #dcfce7; color: #166534; }
+        .badge.bad { background: #fee2e2; color: #991b1b; }
     </style>
-  </head>
+</head>
+<body>
 
-  <body>
-    <div class="wrap">
-      <div class="topbar">
-        <div>
-          <div class="title">Admin</div>
-          <div class="subtitle">Create Zoom meetings for users. Date/time uses your device timezone (Boston / New York).</div>
-        </div>
-        <div class="badge bad" id="keyBadge">Admin key: not set</div>
-      </div>
+<div class="container">
+    <h1>
+        📅 Meeting Manager
+        <span id="keyBadge" class="badge bad">Key: Missing</span>
+    </h1>
 
-      <div class="grid">
-        <!-- FORM -->
-        <div class="card">
-          <div class="cardHeader">
-            <h3>Create meeting</h3>
-            <button class="btnDanger" id="btnReset" type="button">Reset</button>
-          </div>
-
-          <label>Admin API Key</label>
-          <input id="adminKey" placeholder="ADMIN_API_KEY" autocomplete="off" />
-
-          <div class="divider"></div>
-
-          <label>User email</label>
-          <div class="row">
-            <input id="email" placeholder="user@email.com" autocomplete="off" />
-            <button class="btnGhost" id="btnFind" type="button">Find</button>
-          </div>
-
-          <label>User ID</label>
-          <input id="userId" placeholder="Auto-filled" inputmode="numeric" />
-
-          <div class="divider"></div>
-
-          <label>Title</label>
-          <input id="title" placeholder="Weekly Check-in" />
-
-          <label>Zoom URL</label>
-          <input id="zoomUrl" placeholder="https://zoom.us/j/..." />
-
-          <div class="row">
-            <div>
-              <label>Date</label>
-              <input id="date" type="date" />
-            </div>
-            <div>
-              <label>Start</label>
-              <input id="start" type="time" />
-            </div>
-          </div>
-
-          <div class="row">
-            <div>
-              <label>Duration (min)</label>
-              <input id="duration" type="number" min="5" step="5" value="30" />
-            </div>
-            <div>
-              <label>End (optional)</label>
-              <input id="end" type="time" />
-            </div>
-          </div>
-
-          <div class="preview">
-            <strong id="previewBadge">Preview</strong>
-            <div class="previewText mono" id="previewText">Start: -   End: -</div>
-          </div>
-
-          <div class="actions">
-            <button class="btnPrimary" id="btnCreate" type="button">Create</button>
-          </div>
-        </div>
-
-        <!-- OUTPUT -->
-        <div class="card">
-          <div class="cardHeader">
-            <h3>Response</h3>
-            <div class="muted mono">POST /meetings</div>
-          </div>
-          <div class="out mono" id="out">-</div>
-        </div>
-      </div>
+    <div class="auth-bar">
+        <input type="password" id="apiKey" placeholder="ADMIN API KEY">
+        <button class="btn-gray" onclick="initPage()">Login</button>
     </div>
 
-    <script>
-      const $ = (id) => document.getElementById(id);
-      const outEl = $("out");
-      const keyBadge = $("keyBadge");
-      const previewBadge = $("previewBadge");
-      const previewText = $("previewText");
+    <div style="margin-bottom: 20px;">
+        <label>Select User</label>
+        <select id="userSelect">
+            <option value="">Insert API Key first...</option>
+        </select>
+    </div>
 
-      function out(x){
-        outEl.textContent = typeof x === "string" ? x : JSON.stringify(x, null, 2);
-      }
+    <div class="grid-2">
+        <div>
+            <label>Meeting Title</label>
+            <input type="text" id="title" placeholder="e.g. Weekly Check-in">
+        </div>
+        <div>
+            <label>Zoom URL</label>
+            <input type="text" id="zoomUrl" placeholder="https://zoom.us/j/...">
+        </div>
+    </div>
 
-      function adminKey(){
-        return ($("adminKey").value || "").trim();
-      }
+    <div class="grid-3">
+        <div>
+            <label>Date</label>
+            <input type="date" id="date" onchange="updatePreview()">
+        </div>
+        <div>
+            <label>Start Time</label>
+            <input type="time" id="start" value="09:00" onchange="updatePreview()">
+        </div>
+        <div>
+            <label>Duration <span class="hint">(min)</span></label>
+            <input type="number" id="duration" value="30" step="15" min="15" onchange="updatePreview()">
+        </div>
+    </div>
 
-      function syncKeyBadge(){
-        const k = adminKey();
-        if (k.length >= 8){
-          keyBadge.className = "badge ok";
-          keyBadge.textContent = "Admin key: set";
-        } else {
-          keyBadge.className = "badge bad";
-          keyBadge.textContent = "Admin key: not set";
+    <div class="preview-box">
+        <div class="preview-header">Summary</div>
+        <div id="previewText">Select a date and time...</div>
+    </div>
+
+    <button class="btn-blue" id="btnCreate" onclick="createMeeting()">Schedule Meeting</button>
+    <div id="msg" class="msg"></div>
+</div>
+
+<script>
+    // --- INIT ---
+    const savedKey = localStorage.getItem('adminKey');
+    if(savedKey) {
+        document.getElementById('apiKey').value = savedKey;
+        initPage();
+    }
+    
+    // Set default date to today
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('date').value = today;
+    updatePreview();
+
+    // --- FUNCTIONS ---
+
+    function updateBadge(ok) {
+        const b = document.getElementById('keyBadge');
+        b.className = ok ? 'badge ok' : 'badge bad';
+        b.innerText = ok ? 'Key: Active' : 'Key: Missing';
+    }
+
+    async function initPage() {
+        const key = document.getElementById('apiKey').value.trim();
+        if(!key) return;
+        
+        localStorage.setItem('adminKey', key);
+        updateBadge(true);
+
+        const select = document.getElementById('userSelect');
+        select.innerHTML = '<option>Loading...</option>';
+
+        try {
+            const res = await fetch('/admin/users-list', { headers: { 'x-admin-key': key } });
+            
+            if(res.status === 401) {
+                updateBadge(false);
+                alert("API Key Errata");
+                select.innerHTML = '<option value="">Login failed</option>';
+                return;
+            }
+
+            const data = await res.json();
+            
+            select.innerHTML = '<option value="">-- Select a User --</option>';
+            data.users.forEach(u => {
+                // Usiamo email come label e ID (o email) come value. 
+                // Ma per creare il meeting serve l'ID. 
+                // Se l'API users-list ritorna solo email, dobbiamo modificarla o fare una query per ID.
+                // ✅ UPDATE: Ho assunto che l'API /admin/users-list ora ritorni anche l'ID o che 
+                //    possiamo cercare l'ID dall'email.
+                //    Per sicurezza, useremo l'email e faremo una fetch "find user" interna se necessario,
+                //    OPPURE modifichiamo l'API backend per restituire {id, email}.
+                
+                // Opzione migliore: L'API /admin/users-list dovrebbe restituire id ed email.
+                // Se non lo fa, modificala in index.js: "select id, email from users..."
+                
+                // Se non puoi modificare il backend ora, usiamo l'email come value e la cerchiamo al volo.
+                const opt = document.createElement('option');
+                opt.value = u.email; 
+                opt.innerText = u.email;
+                select.appendChild(opt);
+            });
+
+        } catch (e) {
+            console.error(e);
+            alert("Errore connessione server");
         }
-      }
+    }
 
-      function headers(){
-        const k = adminKey();
-        if (!k) throw new Error("Missing admin key.");
-        return { "x-admin-key": k };
-      }
+    function updatePreview() {
+        const dateStr = document.getElementById('date').value;
+        const timeStr = document.getElementById('start').value;
+        const dur = Number(document.getElementById('duration').value);
 
-      function parseLocalDateTime(dateStr, timeStr){
-        const [y,m,d] = dateStr.split("-").map(Number);
-        const [hh,mm] = timeStr.split(":").map(Number);
-        const dt = new Date();
-        dt.setFullYear(y, m-1, d);
-        dt.setHours(hh, mm, 0, 0);
-        return dt;
-      }
+        if(!dateStr || !timeStr) return;
 
-      function computeStartEnd(){
-        const dateStr = $("date").value;
-        const startStr = $("start").value;
-        const endStr = $("end").value;
-        const dur = Number($("duration").value || 30);
+        const start = new Date(`${dateStr}T${timeStr}`);
+        const end = new Date(start.getTime() + dur * 60000);
 
-        if (!dateStr || !startStr) return null;
+        const fmt = (d) => d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        
+        document.getElementById('previewText').innerHTML = `
+            <strong>Start:</strong> ${dateStr} at ${fmt(start)} <br>
+            <strong>End:</strong> ${fmt(end)} (${dur} min)
+        `;
+    }
 
-        const start = parseLocalDateTime(dateStr, startStr);
-        let end;
+    async function createMeeting() {
+        const key = document.getElementById('apiKey').value;
+        const email = document.getElementById('userSelect').value;
+        const title = document.getElementById('title').value;
+        const zoomUrl = document.getElementById('zoomUrl').value;
+        
+        const dateStr = document.getElementById('date').value;
+        const timeStr = document.getElementById('start').value;
+        const dur = Number(document.getElementById('duration').value);
 
-        if (endStr){
-          end = parseLocalDateTime(dateStr, endStr);
-        } else {
-          end = new Date(start.getTime() + Math.max(5, dur) * 60 * 1000);
+        const msg = document.getElementById('msg');
+        msg.style.display = 'none';
+
+        if(!email || !title || !zoomUrl || !dateStr || !timeStr) {
+            alert("Please fill all fields.");
+            return;
         }
 
-        if (!(end > start)) return { bad:true, start, end };
-        return { start, end };
-      }
+        const btn = document.getElementById('btnCreate');
+        btn.innerText = "Scheduling...";
+        btn.disabled = true;
 
-      function updatePreview(){
-        const r = computeStartEnd();
-        if (!r){
-          previewBadge.textContent = "Preview";
-          previewBadge.style.color = "#64748b";
-          previewText.textContent = "Start: -   End: -";
-          return;
+        try {
+            // 1. Troviamo l'ID utente dall'email (per sicurezza)
+            const uRes = await fetch(`/admin/users?email=${email}`, { headers: { 'x-admin-key': key } });
+            const uData = await uRes.json();
+            
+            if(!uData.user?.id) throw new Error("User ID not found for this email");
+            
+            const userId = uData.user.id;
+
+            // 2. Calcoliamo Start/End ISO Strings
+            const startDt = new Date(`${dateStr}T${timeStr}`);
+            const endDt = new Date(startDt.getTime() + dur * 60000);
+
+            // 3. Creiamo il Meeting
+            const payload = {
+                userId,
+                title,
+                zoomUrl,
+                start: startDt.toISOString(),
+                end: endDt.toISOString()
+            };
+
+            const res = await fetch('/meetings', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'x-admin-key': key },
+                body: JSON.stringify(payload)
+            });
+
+            const json = await res.json();
+
+            if(res.ok) {
+                msg.innerText = "✅ Meeting scheduled successfully!";
+                msg.className = "msg success";
+                // Reset form parziale
+                document.getElementById('title').value = "";
+                document.getElementById('zoomUrl').value = "";
+            } else {
+                msg.innerText = "❌ Error: " + (json.error || "Unknown");
+                msg.className = "msg error";
+            }
+
+        } catch (e) {
+            msg.innerText = "❌ Error: " + e.message;
+            msg.className = "msg error";
+        } finally {
+            btn.innerText = "Schedule Meeting";
+            btn.disabled = false;
         }
-        previewBadge.textContent = r.bad ? "Check" : "Ready";
-        previewBadge.style.color = r.bad ? "#dc2626" : "#16a34a";
-        previewText.textContent = `Start: ${r.start.toISOString()}   End: ${r.end.toISOString()}`;
-      }
+    }
+</script>
 
-      function initDefaults(){
-        const now = new Date();
-        const yyyy = now.getFullYear();
-        const mm = String(now.getMonth()+1).padStart(2,"0");
-        const dd = String(now.getDate()).padStart(2,"0");
-        $("date").value = `${yyyy}-${mm}-${dd}`;
-
-        const rounded = new Date(now);
-        rounded.setMinutes(Math.ceil(rounded.getMinutes() / 15) * 15);
-        rounded.setSeconds(0,0);
-        const hh = String(rounded.getHours()).padStart(2,"0");
-        const mi = String(rounded.getMinutes()).padStart(2,"0");
-        $("start").value = `${hh}:${mi}`;
-
-        $("duration").value = "30";
-        $("end").value = "";
-      }
-
-      $("adminKey").addEventListener("input", () => {
-        syncKeyBadge();
-      });
-
-      ["date","start","end","duration"].forEach((id)=>{
-        $(id).addEventListener("input", updatePreview);
-        $(id).addEventListener("change", updatePreview);
-      });
-
-      $("btnReset").onclick = () => {
-        $("adminKey").value = "";
-        $("email").value = "";
-        $("userId").value = "";
-        $("title").value = "";
-        $("zoomUrl").value = "";
-        initDefaults();
-        out("-");
-        syncKeyBadge();
-        updatePreview();
-      };
-
-      $("btnFind").onclick = async () => {
-        try{
-          const email = $("email").value.trim().toLowerCase();
-          if (!email) return out("Enter an email.");
-
-          const r = await fetch(`/admin/users?email=${encodeURIComponent(email)}`, { headers: headers() });
-          const j = await r.json().catch(()=> ({}));
-
-          out(j);
-          if (!r.ok) throw new Error(j?.error ?? `HTTP ${r.status}`);
-
-          $("userId").value = j.user?.id ? String(j.user.id) : "";
-        } catch(e){
-          out(String(e?.message ?? e));
-        }
-      };
-
-      $("btnCreate").onclick = async () => {
-        try{
-          const userId = Number($("userId").value);
-          const title = $("title").value.trim();
-          const zoomUrl = $("zoomUrl").value.trim();
-
-          const r = computeStartEnd();
-          if (!r) return out("Pick a date and start time.");
-          if (r.bad) return out("End must be after start.");
-          if (!userId) return out("Missing userId (use Find).");
-          if (!title) return out("Missing title.");
-          if (!zoomUrl) return out("Missing Zoom URL.");
-
-          const body = {
-            userId,
-            title,
-            start: r.start.toISOString(),
-            end: r.end.toISOString(),
-            zoomUrl,
-          };
-
-          const resp = await fetch(`/meetings`, {
-            method: "POST",
-            headers: { "Content-Type":"application/json", ...headers() },
-            body: JSON.stringify(body),
-          });
-
-          const json = await resp.json().catch(()=> ({}));
-          out(json);
-          if (!resp.ok) throw new Error(json?.error ?? `HTTP ${resp.status}`);
-
-        } catch(e){
-          out(String(e?.message ?? e));
-        }
-      };
-
-      initDefaults();
-      syncKeyBadge();
-      updatePreview();
-    </script>
-  </body>
+</body>
 </html>
