@@ -259,7 +259,57 @@ app.post("/auth/register", async (req, res) => {
     return res.status(500).json({ error: "Server error" });
   }
 });
+// ===========================
+// ✅ GESTIONE OBIETTIVI (GOALS)
+// ===========================
 
+// 1. ADMIN: Imposta obiettivi per un utente (tramite email)
+app.post("/admin/goals", adminKeyMiddleware, async (req, res) => {
+  const email = String(req.body?.email ?? "").trim().toLowerCase();
+  const { calories, protein, carbs, fat, water } = req.body;
+
+  if (!email) return res.status(400).json({ error: "Missing email" });
+
+  try {
+    // Troviamo l'ID utente dall'email
+    const uRes = await pool.query("select id from users where email=$1", [email]);
+    if (uRes.rows.length === 0) return res.status(404).json({ error: "User not found" });
+    const uid = uRes.rows[0].id;
+
+    // Salviamo/Aggiorniamo gli obiettivi (UPSERT)
+    await pool.query(`
+      insert into user_goals (user_id, calories, protein, carbs, fat, water_cups, updated_at)
+      values ($1, $2, $3, $4, $5, $6, now())
+      on conflict (user_id) do update set
+        calories = excluded.calories,
+        protein = excluded.protein,
+        carbs = excluded.carbs,
+        fat = excluded.fat,
+        water_cups = excluded.water_cups,
+        updated_at = now()
+    `, [uid, calories || 2000, protein || 150, carbs || 250, fat || 70, water || 8]);
+
+    return res.json({ ok: true });
+  } catch (e) {
+    console.error(e);
+    return res.status(500).json({ error: "DB Error" });
+  }
+});
+
+// 2. MOBILE: Scarica i propri obiettivi
+app.get("/me/goals", authMiddleware, async (req, res) => {
+  try {
+    const r = await pool.query("select * from user_goals where user_id=$1", [req.user.uid]);
+    // Se non ha obiettivi settati, restituiamo i default
+    const goals = r.rows[0] || { 
+      calories: 2000, protein: 150, carbs: 250, fat: 70, water_cups: 8 
+    };
+    return res.json({ goals });
+  } catch (e) {
+    console.error(e);
+    return res.status(500).json({ error: "Server error" });
+  }
+});
 // AUTH: LOGIN
 app.post("/auth/login", async (req, res) => {
   const email = String(req.body?.email ?? "").trim().toLowerCase();
@@ -465,5 +515,6 @@ app.get("/fatsecret/food/:id", authMiddleware, async (req, res) => {
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Listening on ${PORT}`);
 });
+
 
 
