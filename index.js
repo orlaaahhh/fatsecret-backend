@@ -262,7 +262,14 @@ app.post("/auth/register", async (req, res) => {
 // ===========================
 // ✅ GESTIONE OBIETTIVI (GOALS)
 // ===========================
-
+app.get("/admin/users-list", adminKeyMiddleware, async (req, res) => {
+  try {
+    const r = await pool.query("select email from users order by email asc");
+    return res.json({ users: r.rows });
+  } catch (e) {
+    return res.status(500).json({ error: "Db error" });
+  }
+});
 // 1. ADMIN: Imposta obiettivi per un utente (tramite email)
 app.post("/admin/goals", adminKeyMiddleware, async (req, res) => {
   const email = String(req.body?.email ?? "").trim().toLowerCase();
@@ -515,6 +522,7 @@ app.get("/fatsecret/food/:id", authMiddleware, async (req, res) => {
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Listening on ${PORT}`);
 });
+
 
 
 
