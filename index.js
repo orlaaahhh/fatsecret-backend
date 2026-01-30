@@ -111,6 +111,18 @@ async function initDb() {
       unique(user_id, date)
     );
   `);
+  // users goals
+  await pool.query(`
+    create table if not exists user_goals (
+      user_id integer primary key references users(id) on delete cascade,
+      calories integer default 2000,
+      protein integer default 150,
+      carbs integer default 250,
+      fat integer default 70,
+      water_cups integer default 8,
+      updated_at timestamptz default now()
+    );
+  `);
 }
 initDb().catch((e) => console.error("DB init error:", e));
 
@@ -453,4 +465,5 @@ app.get("/fatsecret/food/:id", authMiddleware, async (req, res) => {
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Listening on ${PORT}`);
 });
+
 
