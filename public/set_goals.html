@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Imposta Obiettivi Utente</title>
+    <style>
+        body { font-family: sans-serif; background: #f0f2f5; padding: 20px; }
+        .card { max-width: 500px; margin: 0 auto; background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        h2 { margin-top: 0; color: #1a73e8; }
+        label { display: block; margin-top: 15px; font-weight: bold; color: #555; }
+        input { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; }
+        button { width: 100%; margin-top: 25px; padding: 12px; background: #1a73e8; color: white; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; }
+        button:hover { background: #1557b0; }
+        .msg { margin-top: 15px; text-align: center; font-weight: bold; }
+        .success { color: green; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>🎯 Imposta Obiettivi Terapia</h2>
+    
+    <label>API Key Admin</label>
+    <input type="password" id="apiKey" placeholder="Inserisci la chiave segreta">
+
+    <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;">
+
+    <label>Email Utente</label>
+    <input type="email" id="email" placeholder="cliente@esempio.com">
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+        <div>
+            <label>Calorie (kcal)</label>
+            <input type="number" id="calories" value="2000">
+        </div>
+        <div>
+            <label>Acqua (bicchieri)</label>
+            <input type="number" id="water" value="8">
+        </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
+        <div>
+            <label>Proteine (g)</label>
+            <input type="number" id="protein" value="150">
+        </div>
+        <div>
+            <label>Carboidrati (g)</label>
+            <input type="number" id="carbs" value="250">
+        </div>
+        <div>
+            <label>Grassi (g)</label>
+            <input type="number" id="fat" value="70">
+        </div>
+    </div>
+
+    <button onclick="saveGoals()">Salva Obiettivi</button>
+    <div id="msg" class="msg"></div>
+</div>
+
+<script>
+    // Recupera Key salvata
+    const savedKey = localStorage.getItem('adminKey');
+    if(savedKey) document.getElementById('apiKey').value = savedKey;
+
+    async function saveGoals() {
+        const key = document.getElementById('apiKey').value;
+        const email = document.getElementById('email').value;
+        const msg = document.getElementById('msg');
+        
+        localStorage.setItem('adminKey', key); // Ricorda la key
+
+        if(!email) return alert("Inserisci l'email dell'utente");
+
+        const payload = {
+            email,
+            calories: Number(document.getElementById('calories').value),
+            protein: Number(document.getElementById('protein').value),
+            carbs: Number(document.getElementById('carbs').value),
+            fat: Number(document.getElementById('fat').value),
+            water: Number(document.getElementById('water').value),
+        };
+
+        msg.textContent = "Salvataggio in corso...";
+        msg.className = "msg";
+
+        try {
+            const res = await fetch('/admin/goals', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'x-admin-key': key
+                },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await res.json();
+
+            if(res.ok) {
+                msg.textContent = "✅ Obiettivi aggiornati con successo!";
+                msg.className = "msg success";
+            } else {
+                msg.textContent = "❌ Errore: " + (data.error || "Sconosciuto");
+                msg.className = "msg error";
+            }
+        } catch (e) {
+            msg.textContent = "❌ Errore di connessione";
+            msg.className = "msg error";
+        }
+    }
+</script>
+
+</body>
+</html>
